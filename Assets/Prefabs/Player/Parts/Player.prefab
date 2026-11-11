@@ -156,6 +156,9 @@ GameObject:
   - component: {fileID: 646906874213016073}
   - component: {fileID: 6989127576621601530}
   - component: {fileID: 7239716543762037946}
+  - component: {fileID: 8516936661616044935}
+  - component: {fileID: 4968545314268356562}
+  - component: {fileID: 7842533205269361768}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -227,3 +230,56 @@ MonoBehaviour:
   groundMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!114 &8516936661616044935
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6465531480433959615}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a71dff666bd7ebb4c81e85ab13e68624, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Noir.Interaction.Interactor
+  modes: {fileID: 7842533205269361768}
+  distance: 2.5
+  mask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+--- !u!114 &4968545314268356562
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6465531480433959615}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3236e6016644d3947b07294ec932c214, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Noir.Interaction.InspectMode
+  showCursor: 0
+  closeOnEscape: 1
+  modeCamera: {fileID: 0}
+  inspectPoint: {fileID: 0}
+  rotateSpeed: 0.3
+  moveDuration: 0.25
+--- !u!114 &7842533205269361768
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6465531480433959615}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ad3101ee02585d4e916cf551b0bb883, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Noir.Player.PlayerModes
+  explorationControls:
+  - {fileID: 7239716543762037946}
+  - {fileID: 8516936661616044935}
+  - {fileID: 0}
+  explorationHud:
+  - {fileID: 0}
