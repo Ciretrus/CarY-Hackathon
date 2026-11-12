@@ -161,3 +161,4 @@ x86/
 # Защищаем Unity Package Manager
 !/Packages/manifest.json
 !/Packages/packages-lock.json
+Assets/HIghWeightAssets
