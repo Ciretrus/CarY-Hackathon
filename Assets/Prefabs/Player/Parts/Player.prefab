@@ -159,6 +159,7 @@ GameObject:
   - component: {fileID: 8516936661616044935}
   - component: {fileID: 4968545314268356562}
   - component: {fileID: 7842533205269361768}
+  - component: {fileID: 2301734935073345532}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -277,9 +278,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4ad3101ee02585d4e916cf551b0bb883, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Noir.Player.PlayerModes
-  explorationControls:
-  - {fileID: 7239716543762037946}
-  - {fileID: 8516936661616044935}
-  - {fileID: 0}
-  explorationHud:
-  - {fileID: 0}
+  _explorationControls: []
+  _explorationHud: []
+--- !u!114 &2301734935073345532
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6465531480433959615}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a13a6d3955f50b47ae8f265e87638ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Noir.Player.BoardMode
+  showCursor: 0
+  closeOnEscape: 1
+  modeCamera: {fileID: 0}
+  _pinMask:
+    serializedVersion: 2
+    m_Bits: 0
+  _rayDistance: 50
+  _boardCamera: {fileID: 0}
+  _flashback: {fileID: 0}
+  _boardHud: {fileID: 0}
