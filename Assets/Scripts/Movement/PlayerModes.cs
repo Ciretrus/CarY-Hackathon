@@ -4,8 +4,8 @@ namespace Noir.Player
 {
     public class PlayerModes : MonoBehaviour
     {
-        [SerializeField] Behaviour[] explorationControls;
-        [SerializeField] GameObject[] explorationHud;
+        [SerializeField] private Behaviour[] _explorationControls;
+        [SerializeField] private GameObject[] _explorationHud;
 
         public PlayerMode Current { get; private set; }
 
@@ -33,8 +33,8 @@ namespace Noir.Player
 
         void SetExploration(bool active)
         {
-            foreach (var c in explorationControls) c.enabled = active;
-            foreach (var h in explorationHud) h.SetActive(active);
+            foreach (var c in _explorationControls) c.enabled = active;
+            foreach (var h in _explorationHud) h.SetActive(active);
         }
     }
 }
