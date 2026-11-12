@@ -71,5 +71,15 @@ namespace Noir.Player
                 controller.Move(Vector3.down * (hit.distance - half + controller.skinWidth));
             }
         }
+        public void Warp(Vector3 pos)
+        {
+            controller.enabled = false;
+            transform.position = pos;
+            horizontalVelocity = Vector3.zero;
+            verticalVelocity = 0f;
+            wasGrounded = false;
+            controller.enabled = true;
+            Physics.SyncTransforms();
+        }
     }
 }
