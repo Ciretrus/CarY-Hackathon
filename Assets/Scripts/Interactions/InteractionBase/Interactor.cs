@@ -26,7 +26,7 @@ namespace Noir.Interaction
         {
             SetCurrent(FindTarget());
 
-            if (current != null && Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+            if (current != null && Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
                 current.Interact(this);
         }
 

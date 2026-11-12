@@ -110,7 +110,7 @@ namespace Noir.Player
             if (mouse == null || keyboard == null) 
                 return;
 
-            if (mouse.rightButton.wasPressedThisFrame || keyboard.escapeKey.wasPressedThisFrame)
+            if (mouse.rightButton.wasPressedThisFrame)
             {
                 BeginExit();
                 return;

@@ -32,7 +32,7 @@ namespace Noir.Interaction
 
         protected override void Tick()
         {
-            if (Keyboard.current.eKey.wasPressedThisFrame)
+            if (Mouse.current.rightButton.wasPressedThisFrame)
             {
                 Close();
                 return;
