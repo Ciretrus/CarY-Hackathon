@@ -8,6 +8,7 @@ namespace Noir.Player
         [SerializeField] bool showCursor;
         [SerializeField] bool closeOnEscape = true;
         [SerializeField] GameObject modeCamera;
+        [SerializeField] Behaviour[] keepEnabled;
 
         int enterFrame;
 
@@ -27,6 +28,7 @@ namespace Noir.Player
         public void Activate()
         {
             enterFrame = Time.frameCount;
+            foreach (var control in keepEnabled) control.enabled = true;
             Cursor.lockState = showCursor ? CursorLockMode.None : CursorLockMode.Locked;
             Cursor.visible = showCursor;
             if (modeCamera != null) modeCamera.SetActive(true);

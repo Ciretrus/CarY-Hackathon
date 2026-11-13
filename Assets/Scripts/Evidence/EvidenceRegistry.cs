@@ -71,8 +71,19 @@ namespace Noir.Interaction
             FoundChanged?.Invoke(evidence);
             return true;
         }
+        public bool Collect(string id, Texture2D photo)
+        {
+            var evidence = GetEvidence(id);
+            if (evidence != null && !evidence.IsFound)
+                evidence.SetPhoto(photo);
+
+            return Collect(id);
+        }
         public bool IsFound(string id)
         {
+            if (string.IsNullOrWhiteSpace(id))
+                return false;
+
             if (_byId.TryGetValue(id, out BoardEvidence evidence))
             {
                 return evidence.IsFound;
@@ -81,6 +92,9 @@ namespace Noir.Interaction
         }
         public BoardEvidence GetEvidence(string id)
         {
+            if (string.IsNullOrWhiteSpace(id))
+                return null;
+
             if (_byId.TryGetValue(id, out BoardEvidence evidence))
             {
                 return evidence;

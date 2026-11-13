@@ -7,6 +7,7 @@ namespace Noir.Interaction
     {
         [SerializeField] private string _id;
         [SerializeField] private SpriteRenderer _glow;
+        [SerializeField] private SpriteRenderer _photo;
         [SerializeField] private float _hoverAlpha = 0.3f;
         [SerializeField] private float _duration = 0.15f;
         [SerializeField] private Ease _ease = Ease.OutQuad;
@@ -55,6 +56,16 @@ namespace Noir.Interaction
             _isHovered = false;
             Refresh();
         }
+        public void SetPhoto(Texture2D texture)
+        {
+            if (_photo == null || texture == null)
+                return;
+
+            float width = _photo.sprite != null ? _photo.sprite.bounds.size.x : 1f;
+            var rect = new Rect(0f, 0f, texture.width, texture.height);
+            _photo.sprite = Sprite.Create(texture, rect, new Vector2(0.5f, 0.5f), texture.width / width);
+        }
+
         public void MarkFound()
         {
             if (IsFound)
