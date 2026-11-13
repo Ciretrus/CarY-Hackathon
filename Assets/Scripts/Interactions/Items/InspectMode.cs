@@ -8,12 +8,15 @@ namespace Noir.Interaction
     public class InspectMode : PlayerMode
     {
         [SerializeField] Transform inspectPoint;
+        [SerializeField] ClueDetector detector;
         [SerializeField] float rotateSpeed = 0.3f;
         [SerializeField] float moveDuration = 0.25f;
+        [SerializeField] float takeDuration = 0.2f;
 
         Transform item;
         Vector3 startPosition;
         Quaternion startRotation;
+        bool taken;
 
         public void Inspect(Transform target)
         {
@@ -25,9 +28,11 @@ namespace Noir.Interaction
         {
             startPosition = item.position;
             startRotation = item.rotation;
+            taken = false;
 
             item.DOKill();
             item.DOMove(inspectPoint.position, moveDuration).SetEase(Ease.OutQuad);
+            detector.Begin(item);
         }
 
         protected override void Tick()
@@ -38,17 +43,49 @@ namespace Noir.Interaction
                 return;
             }
 
+            if (Keyboard.current.eKey.wasPressedThisFrame && detector.TryCollect() && !detector.HasRemaining)
+            {
+                taken = true;
+                Close();
+                return;
+            }
+
             Vector2 delta = Mouse.current.delta.ReadValue() * rotateSpeed;
             item.Rotate(inspectPoint.up, -delta.x, Space.World);
             item.Rotate(inspectPoint.right, delta.y, Space.World);
+
+            detector.Tick();
         }
 
         protected override void OnExit()
         {
+            detector.End();
             item.DOKill();
-            item.DOMove(startPosition, moveDuration).SetEase(Ease.OutQuad);
-            item.DORotateQuaternion(startRotation, moveDuration).SetEase(Ease.OutQuad);
+
+            if (taken)
+                Take(item);
+            else
+                PutBack(item);
+
             item = null;
+        }
+
+        void PutBack(Transform target)
+        {
+            target.DOMove(startPosition, moveDuration).SetEase(Ease.OutQuad);
+            target.DORotateQuaternion(startRotation, moveDuration).SetEase(Ease.OutQuad);
+        }
+
+        void Take(Transform target)
+        {
+            Vector3 scale = target.localScale;
+            target.DOScale(0f, takeDuration)
+                .SetEase(Ease.InBack)
+                .OnComplete(() =>
+                {
+                    target.gameObject.SetActive(false);
+                    target.localScale = scale;
+                });
         }
     }
 }
