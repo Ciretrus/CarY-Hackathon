@@ -3597,6 +3597,10 @@ PrefabInstance:
       propertyPath: m_StaticEditorFlags
       value: 2147483647
       objectReference: {fileID: 0}
+    - target: {fileID: 5270234646140110192, guid: 26b4b8eda3bc61d43abe795cf148bfd8, type: 3}
+      propertyPath: m_RayTracingMode
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 5731150657526559057, guid: 26b4b8eda3bc61d43abe795cf148bfd8, type: 3}
       propertyPath: m_LocalScale.z
       value: 102.78499
