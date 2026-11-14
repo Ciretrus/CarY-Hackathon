@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1110315586106651277}
   - component: {fileID: 7819550155775431705}
+  - component: {fileID: 6367886720353857819}
   m_Layer: 0
   m_Name: Eraser
   m_TagString: Untagged
@@ -55,6 +56,31 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &6367886720353857819
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 441073895308065866}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 474758cdea82dd6479be9849301677e9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ThreadEraser
+  onInteract:
+    m_PersistentCalls:
+      m_Calls: []
+  onHoverEnter:
+    m_PersistentCalls:
+      m_Calls: []
+  onHoverExit:
+    m_PersistentCalls:
+      m_Calls: []
+  _glow: {fileID: 0}
+  _hoverAlpha: 0.3
+  _duration: 0.15
+  _ease: 6
 --- !u!1 &1183238290294267758
 GameObject:
   m_ObjectHideFlags: 0
