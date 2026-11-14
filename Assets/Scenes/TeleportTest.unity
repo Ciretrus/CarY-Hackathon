@@ -4122,14 +4122,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Noir.Interaction.ThreadSession
   _pinPrefab: {fileID: 6708667222579760474, guid: dd03588033d8b0540a72de2f45fda620, type: 3}
   _pinScale: 0.02
-  _stringMaterial: {fileID: 0}
+  _stringMaterial: {fileID: 2100000, guid: d4e6d125952611a479ca572ed0323d1d, type: 2}
   _stringWidth: 0.004
   _segments: 12
   _sag: 0.05
   _registry: {fileID: 0}
-  _correctSequence:
-  - lighter
-  - blood
+  _solutions: []
   _eraseStep: 0.08
   _audio: {fileID: 0}
   _failSound: {fileID: 0}
@@ -7743,6 +7741,10 @@ PrefabInstance:
     - target: {fileID: 441073895308065866, guid: 865ae66ef07247e49b8af4bd4de77f14, type: 3}
       propertyPath: m_Layer
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 441073895308065866, guid: 865ae66ef07247e49b8af4bd4de77f14, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1110315586106651277, guid: 865ae66ef07247e49b8af4bd4de77f14, type: 3}
       propertyPath: m_LocalPosition.x

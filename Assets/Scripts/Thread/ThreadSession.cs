@@ -1,5 +1,6 @@
-using System.Collections.Generic;
 using DG.Tweening;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
@@ -20,7 +21,7 @@ namespace Noir.Interaction
 
         [Header("Logic")]
         [SerializeField] private EvidenceRegistry _registry;
-        [SerializeField] private string[] _correctSequence = { };
+        [SerializeField] private Solution[] _solutions = { };
         [SerializeField] private float _eraseStep = 0.08f;
 
         [Header("Feedback")]
@@ -33,6 +34,12 @@ namespace Noir.Interaction
         [SerializeField] private UnityEvent onWrong = new();
         [SerializeField] private UnityEvent onSolved = new();
 
+        [Serializable]
+        public class Solution
+        {
+           public string suspect;
+           public string[] ids;
+        }
         private sealed class Pin
         {
             public BoardEvidence Evidence;
@@ -111,7 +118,7 @@ namespace Noir.Interaction
             seq.SetLink(gameObject);
         }
 
-        void LateUpdate()
+        private void LateUpdate()
         {
             if (_liveRope == null)
                 return;
@@ -132,7 +139,7 @@ namespace Noir.Interaction
             _liveRope.SetEndpoints(last.Point, cursor);
         }
 
-        Vector3 CursorPoint(Vector3 fallback)
+        private Vector3 CursorPoint(Vector3 fallback)
         {
             var mouse = Mouse.current;
             var cam = Camera.main;
@@ -150,7 +157,7 @@ namespace Noir.Interaction
             return ray.GetPoint(t);
         }
 
-        void Append(BoardEvidence evidence, Vector3 point, Vector3 normal)
+        private void Append(BoardEvidence evidence, Vector3 point, Vector3 normal)
         {
             var pin = new Pin
             {
@@ -169,7 +176,7 @@ namespace Noir.Interaction
                 Evaluate();
         }
 
-        void Reposition(Pin pin, Vector3 point, Vector3 normal)
+        private void Reposition(Pin pin, Vector3 point, Vector3 normal)
         {
             pin.Point = point;
             pin.Normal = normal;
@@ -180,34 +187,23 @@ namespace Noir.Interaction
                 SetLine(pin.Line, _chain[index - 1].Point, point);
         }
 
-        void Evaluate()
+        private void Evaluate()
         {
-            if (_correctSequence.Length == 0)
+            if (_solutions.Length == 0)
                 return;
 
             int available = _registry != null ? _registry.FoundCount : _chain.Count;
-            Debug.Log($"[DBG] Evaluate: chain={_chain.Count} available={available} seqLen={_correctSequence.Length}");
             if (_chain.Count != available || available == 0)
                 return;
 
-            if (available < _correctSequence.Length)
+            if (available < _solutions[0].ids.Length)
             {
                 onMissing?.Invoke();
                 Play(_missingLine);
                 return;
             }
 
-            bool correct = true;
-            for (int i = 0; i < _correctSequence.Length; i++)
-            {
-                if (_chain[i].Evidence.ID != _correctSequence[i])
-                {
-                    correct = false;
-                    break;
-                }
-            }
-
-            if (correct)
+            if (FindSolution() >= 0)
             {
                 onSolved?.Invoke();
                 Play(_solvedLine);
@@ -217,10 +213,27 @@ namespace Noir.Interaction
                 onWrong?.Invoke();
                 Play(_wrongLine);
             }
-            Debug.Log($"[DBG] Evaluate: correct={correct}");
         }
 
-        Transform CreateNode(Vector3 point, Vector3 normal)
+        private int FindSolution()
+        {
+            for (int i = 0; i < _solutions.Length; i++)
+                if (Matches(_solutions[i].ids))
+                    return i;
+            return -1;
+        }
+
+        private bool Matches(string[] ids)
+        {
+            if (ids.Length != _chain.Count)
+                return false;
+            for (int i = 0; i < ids.Length; i++)
+                if (_chain[i].Evidence.ID != ids[i])
+                    return false;
+            return true;
+        }
+
+        private Transform CreateNode(Vector3 point, Vector3 normal)
         {
             GameObject node;
             if (_pinPrefab != null)
@@ -241,20 +254,20 @@ namespace Noir.Interaction
             return node.transform;
         }
 
-        static void SetLayerRecursively(Transform t, int layer)
+        private static void SetLayerRecursively(Transform t, int layer)
         {
             t.gameObject.layer = layer;
             foreach (Transform child in t)
                 SetLayerRecursively(child, layer);
         }
 
-        void SetNodeTransform(Transform node, Vector3 point, Vector3 normal)
+        private void SetNodeTransform(Transform node, Vector3 point, Vector3 normal)
         {
             node.position = point;
             node.rotation = normal.sqrMagnitude > 0.001f ? Quaternion.LookRotation(normal) : Quaternion.identity;
         }
 
-        LineRenderer CreateLine(Vector3 a, Vector3 b)
+        private LineRenderer CreateLine(Vector3 a, Vector3 b)
         {
             var go = new GameObject("ThreadString");
             go.transform.SetParent(transform, false);
@@ -268,7 +281,7 @@ namespace Noir.Interaction
             return lr;
         }
 
-        void SetLine(LineRenderer lr, Vector3 a, Vector3 b)
+        private void SetLine(LineRenderer lr, Vector3 a, Vector3 b)
         {
             Vector3 mid = (a + b) * 0.5f + Vector3.down * _sag;
             for (int i = 0; i < _segments; i++)
@@ -279,7 +292,7 @@ namespace Noir.Interaction
             }
         }
 
-        void DestroyPin(Pin pin)
+        private void DestroyPin(Pin pin)
         {
             if (pin.Line != null)
                 Destroy(pin.Line.gameObject);
@@ -287,10 +300,27 @@ namespace Noir.Interaction
                 Destroy(pin.Node.gameObject);
         }
 
-        void Play(AudioClip clip)
+        private void Play(AudioClip clip)
         {
             if (_audio != null && clip != null)
                 _audio.PlayOneShot(clip);
+        }
+        private void OnValidate()
+        {
+            if (_solutions == null || _solutions.Length == 0)
+                return;
+
+            int length = _solutions[0].ids.Length;
+            var seen = new HashSet<string>();
+            foreach (var s in _solutions)
+            {
+                if (s.ids.Length != length)
+                    Debug.LogWarning($"Solution '{s.suspect}': длина отличается от первого решения", this);
+                if (new HashSet<string>(s.ids).Count != s.ids.Length)
+                    Debug.LogWarning($"Solution '{s.suspect}': id повторяются", this);
+                if (!seen.Add(string.Join(",", s.ids)))
+                    Debug.LogWarning($"Solution '{s.suspect}': дубликат другого решения", this);
+            }
         }
     }
 }
