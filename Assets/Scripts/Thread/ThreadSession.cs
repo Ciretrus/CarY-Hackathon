@@ -158,7 +158,11 @@ namespace Noir.Interaction
             };
             _chain.Add(pin);
             Play(_pinSound);
-            if (_chain.Count == _requiredClues) Evaluate();
+            if (_chain.Count == _requiredClues){
+                Evaluate();
+                _state = State.Stopped;
+            }
+            
         }
 
         void Reposition(Pin pin, Vector3 point, Vector3 normal)
@@ -206,12 +210,20 @@ namespace Noir.Interaction
             if (required == null || required.Length == 0) return;
 
             foreach (var id in required)
-                if (!_registry.IsFound(id))
+            {
+                var evidence = _registry.GetEvidence(id);
+                if (evidence == null)
+                {
+                    Debug.LogError($"ThreadSession: у '{_suspect.SuspectName}' id '{id}' не существует на доске", this);
+                    return;
+                }
+                if (!evidence.IsFound)
                 {
                     onMissing?.Invoke();
                     Play(_missingLine);
                     return;
                 }
+            }
 
             var placed = new HashSet<string>();
             foreach (var pin in _chain) placed.Add(pin.Evidence.ID);
@@ -228,12 +240,18 @@ namespace Noir.Interaction
         void LateUpdate()
         {
             if (_liveRope == null) return;
-            bool on = _state == State.Threading && _suspectNode != null;
+
+            bool on = _state == State.Threading
+                      && _suspectNode != null
+                      && _chain.Count < _requiredClues
+                      && _used < _pinStock.Length;
+
             if (!on)
             {
                 if (_liveRope.Active) _liveRope.End();
                 return;
             }
+
             Vector3 anchor = _chain.Count > 0 ? _chain[_chain.Count - 1].Point : _suspectPoint;
             Vector3 cursor = CursorPoint(anchor);
             if (!_liveRope.Active) _liveRope.Begin(anchor);
