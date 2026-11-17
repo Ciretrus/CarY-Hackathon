@@ -1,6 +1,5 @@
-using DG.Tweening;
-using System;
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
@@ -9,9 +8,10 @@ namespace Noir.Interaction
 {
     public class ThreadSession : MonoBehaviour
     {
-        [Header("Pin")]
-        [SerializeField] private GameObject _pinPrefab;
-        [SerializeField] private float _pinScale = 0.02f;
+        private enum State { Idle, Threading, Stopped, Suspended }
+
+        [Header("Pin stock")]
+        [SerializeField] private Transform[] _pinStock = new Transform[6];
 
         [Header("String")]
         [SerializeField] private Material _stringMaterial;
@@ -21,25 +21,17 @@ namespace Noir.Interaction
 
         [Header("Logic")]
         [SerializeField] private EvidenceRegistry _registry;
-        [SerializeField] private Solution[] _solutions = { };
-        [SerializeField] private float _eraseStep = 0.08f;
+        [SerializeField] private int _requiredClues = 5;
 
         [Header("Feedback")]
         [SerializeField] private AudioSource _audio;
+        [SerializeField] private AudioClip _pinSound;
         [SerializeField] private AudioClip _failSound;
         [SerializeField] private AudioClip _missingLine;
         [SerializeField] private AudioClip _wrongLine;
-        [SerializeField] private AudioClip _solvedLine;
         [SerializeField] private UnityEvent onMissing = new();
         [SerializeField] private UnityEvent onWrong = new();
-        [SerializeField] private UnityEvent onSolved = new();
 
-        [Serializable]
-        public class Solution
-        {
-           public string suspect;
-           public string[] ids;
-        }
         private sealed class Pin
         {
             public BoardEvidence Evidence;
@@ -50,20 +42,40 @@ namespace Noir.Interaction
         }
 
         private readonly List<Pin> _chain = new();
-        private bool _busy;
+        private State _state;
+        private BoardSuspect _suspect;
+        private Transform _suspectNode;
+        private Vector3 _suspectPoint;
+        private int _used;
+        private Vector3[] _homePos;
+        private Quaternion[] _homeRot;
         private VerletRope _liveRope;
 
-        public bool IsBusy => _busy;
+        public bool IsThreading => _state == State.Threading;
         public int ChainCount => _chain.Count;
-        public bool ThreadsActive { get; set; }
 
         void Awake()
         {
-            if (_registry == null)
-                _registry = GetComponent<EvidenceRegistry>();
-            if (_stringMaterial == null)
-                _stringMaterial = new Material(Shader.Find("Sprites/Default"));
+            if (_registry == null) _registry = GetComponent<EvidenceRegistry>();
+            if (_stringMaterial == null) _stringMaterial = new Material(Shader.Find("Sprites/Default"));
+            if (_pinStock == null) _pinStock = new Transform[0];
             _segments = Mathf.Max(2, _segments);
+
+            _homePos = new Vector3[_pinStock.Length];
+            _homeRot = new Quaternion[_pinStock.Length];
+            for (int i = 0; i < _pinStock.Length; i++)
+            {
+                var t = _pinStock[i];
+                if (t == null)
+                {
+                    Debug.LogError($"ThreadSession: слот {i} в _pinStock пустой", this);
+                    continue;
+                }
+                _homePos[i] = t.position;
+                _homeRot[i] = t.rotation;
+                foreach (var c in t.GetComponentsInChildren<Collider>()) Destroy(c);
+                SetLayerRecursively(t, 0);
+            }
 
             var ropeGo = new GameObject("LiveThread");
             ropeGo.transform.SetParent(transform, false);
@@ -75,139 +87,137 @@ namespace Noir.Interaction
             _liveRope = ropeGo.AddComponent<VerletRope>();
         }
 
-        public void PlacePin(BoardEvidence evidence, Vector3 point, Vector3 normal)
+        public void OnBoardEnter() => _state = _suspect != null ? State.Suspended : State.Idle;
+        public void OnBoardExit() => _state = _suspect != null ? State.Suspended : State.Idle;
+
+        public bool TryStopThread()
         {
-            if (_busy || evidence == null)
+            if (_state != State.Threading) return false;
+            _state = State.Stopped;
+            return true;
+        }
+
+        public void ClickSuspect(BoardSuspect suspect, Vector3 point, Vector3 normal)
+        {
+            if (suspect == null) return;
+
+            if (_state == State.Suspended && suspect == _suspect)
+            {
+                _state = State.Threading;
                 return;
+            }
+
+            ResetChain();
+
+            var node = TakePin(point, normal);
+            if (node == null)
+            {
+                Debug.LogError("ThreadSession: не удалось взять гвоздик из запаса", this);
+                return;
+            }
+
+            _suspect = suspect;
+            _suspect.SetSelected(true);
+            _suspectPoint = point;
+            _suspectNode = node;
+            _state = State.Threading;
+            Play(_pinSound);
+        }
+
+        public void ClickEvidence(BoardEvidence evidence, Vector3 point, Vector3 normal)
+        {
+            if (_state != State.Threading || evidence == null) return;
 
             int index = _chain.FindIndex(p => p.Evidence == evidence);
-
             if (index >= 0)
             {
-                if (index < _chain.Count - 1)
-                {
-                    Play(_failSound);
-                    return;
-                }
-
+                if (index < _chain.Count - 1) { Play(_failSound); return; }
                 Reposition(_chain[index], point, normal);
                 return;
             }
 
+            if (_chain.Count >= _requiredClues) return;
+            if (_used >= _pinStock.Length) return;
+
             Append(evidence, point, normal);
         }
 
-        public void EraseAll()
+        void Append(BoardEvidence evidence, Vector3 point, Vector3 normal)
         {
-            if (_busy || _chain.Count == 0)
-                return;
-            _busy = true;
+            var node = TakePin(point, normal);
+            if (node == null) return;
 
-            var seq = DOTween.Sequence();
-            for (int i = _chain.Count - 1; i >= 0; i--)
-            {
-                var pin = _chain[i];
-                seq.AppendInterval(_eraseStep);
-                seq.AppendCallback(() => DestroyPin(pin));
-            }
-            seq.AppendCallback(() =>
-            {
-                _chain.Clear();
-                _busy = false;
-            });
-            seq.SetLink(gameObject);
-        }
-
-        private void LateUpdate()
-        {
-            if (_liveRope == null)
-                return;
-
-            bool on = ThreadsActive && !_busy && _chain.Count > 0;
-            if (!on)
-            {
-                if (_liveRope.Active)
-                    _liveRope.End();
-                return;
-            }
-
-            var last = _chain[_chain.Count - 1];
-            Vector3 cursor = CursorPoint(last.Point);
-
-            if (!_liveRope.Active)
-                _liveRope.Begin(last.Point);
-            _liveRope.SetEndpoints(last.Point, cursor);
-        }
-
-        private Vector3 CursorPoint(Vector3 fallback)
-        {
-            var mouse = Mouse.current;
-            var cam = Camera.main;
-            if (mouse == null || cam == null)
-                return fallback;
-
-            var ray = cam.ScreenPointToRay(mouse.position.ReadValue());
-            Vector3 n = transform.forward;
-            float denom = Vector3.Dot(n, ray.direction);
-            if (Mathf.Abs(denom) < 1e-4f)
-                return fallback;
-            float t = Vector3.Dot(n, transform.position - ray.origin) / denom;
-            if (t <= 0f)
-                return fallback;
-            return ray.GetPoint(t);
-        }
-
-        private void Append(BoardEvidence evidence, Vector3 point, Vector3 normal)
-        {
+            var prev = _chain.Count > 0 ? _chain[_chain.Count - 1].Point : _suspectPoint;
             var pin = new Pin
             {
                 Evidence = evidence,
                 Point = point,
                 Normal = normal,
-                Node = CreateNode(point, normal)
+                Node = node,
+                Line = CreateLine(prev, point)
             };
-
-            if (_chain.Count > 0)
-                pin.Line = CreateLine(_chain[_chain.Count - 1].Point, point);
-
             _chain.Add(pin);
-
-            if (_registry != null && _chain.Count == _registry.FoundCount)
-                Evaluate();
+            Play(_pinSound);
+            if (_chain.Count == _requiredClues) Evaluate();
         }
 
-        private void Reposition(Pin pin, Vector3 point, Vector3 normal)
+        void Reposition(Pin pin, Vector3 point, Vector3 normal)
         {
             pin.Point = point;
             pin.Normal = normal;
             SetNodeTransform(pin.Node, point, normal);
-
             int index = _chain.IndexOf(pin);
-            if (pin.Line != null && index > 0)
-                SetLine(pin.Line, _chain[index - 1].Point, point);
+            var prev = index > 0 ? _chain[index - 1].Point : _suspectPoint;
+            if (pin.Line != null) SetLine(pin.Line, prev, point);
         }
 
-        private void Evaluate()
+        void ResetChain()
         {
-            if (_solutions.Length == 0)
-                return;
+            foreach (var pin in _chain)
+                if (pin.Line != null) Destroy(pin.Line.gameObject);
+            _chain.Clear();
 
-            int available = _registry != null ? _registry.FoundCount : _chain.Count;
-            if (_chain.Count != available || available == 0)
-                return;
-
-            if (available < _solutions[0].ids.Length)
+            for (int i = 0; i < _used && i < _pinStock.Length; i++)
             {
-                onMissing?.Invoke();
-                Play(_missingLine);
-                return;
+                if (_pinStock[i] == null) continue;
+                _pinStock[i].position = _homePos[i];
+                _pinStock[i].rotation = _homeRot[i];
             }
+            _used = 0;
+            _suspectNode = null;
 
-            if (FindSolution() >= 0)
-            {
-                onSolved?.Invoke();
-                Play(_solvedLine);
-            }
+            if (_suspect != null) _suspect.SetSelected(false);
+            _suspect = null;
+        }
+
+        Transform TakePin(Vector3 point, Vector3 normal)
+        {
+            if (_used >= _pinStock.Length) return null;
+            var node = _pinStock[_used++];
+            if (node == null) return null;
+            SetNodeTransform(node, point, normal);
+            return node;
+        }
+
+        void Evaluate()
+        {
+            if (_suspect == null || _registry == null) return;
+            var required = _suspect.RequiredIds;
+            if (required == null || required.Length == 0) return;
+
+            foreach (var id in required)
+                if (!_registry.IsFound(id))
+                {
+                    onMissing?.Invoke();
+                    Play(_missingLine);
+                    return;
+                }
+
+            var placed = new HashSet<string>();
+            foreach (var pin in _chain) placed.Add(pin.Evidence.ID);
+
+            if (placed.SetEquals(new HashSet<string>(required)))
+                _suspect.TriggerSolved(_audio);
             else
             {
                 onWrong?.Invoke();
@@ -215,59 +225,48 @@ namespace Noir.Interaction
             }
         }
 
-        private int FindSolution()
+        void LateUpdate()
         {
-            for (int i = 0; i < _solutions.Length; i++)
-                if (Matches(_solutions[i].ids))
-                    return i;
-            return -1;
-        }
-
-        private bool Matches(string[] ids)
-        {
-            if (ids.Length != _chain.Count)
-                return false;
-            for (int i = 0; i < ids.Length; i++)
-                if (_chain[i].Evidence.ID != ids[i])
-                    return false;
-            return true;
-        }
-
-        private Transform CreateNode(Vector3 point, Vector3 normal)
-        {
-            GameObject node;
-            if (_pinPrefab != null)
-                node = Instantiate(_pinPrefab, point, Quaternion.identity);
-            else
+            if (_liveRope == null) return;
+            bool on = _state == State.Threading && _suspectNode != null;
+            if (!on)
             {
-                node = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                node.transform.localScale = Vector3.one * _pinScale;
+                if (_liveRope.Active) _liveRope.End();
+                return;
             }
-
-            foreach (var c in node.GetComponentsInChildren<Collider>())
-                Destroy(c);
-            SetLayerRecursively(node.transform, 0);
-
-            node.name = "Pin";
-            node.transform.SetParent(transform, true);
-            SetNodeTransform(node.transform, point, normal);
-            return node.transform;
+            Vector3 anchor = _chain.Count > 0 ? _chain[_chain.Count - 1].Point : _suspectPoint;
+            Vector3 cursor = CursorPoint(anchor);
+            if (!_liveRope.Active) _liveRope.Begin(anchor);
+            _liveRope.SetEndpoints(anchor, cursor);
         }
 
-        private static void SetLayerRecursively(Transform t, int layer)
+        Vector3 CursorPoint(Vector3 fallback)
+        {
+            var mouse = Mouse.current;
+            var cam = Camera.main;
+            if (mouse == null || cam == null) return fallback;
+            var ray = cam.ScreenPointToRay(mouse.position.ReadValue());
+            Vector3 n = transform.forward;
+            float denom = Vector3.Dot(n, ray.direction);
+            if (Mathf.Abs(denom) < 1e-4f) return fallback;
+            float t = Vector3.Dot(n, transform.position - ray.origin) / denom;
+            if (t <= 0f) return fallback;
+            return ray.GetPoint(t);
+        }
+
+        static void SetLayerRecursively(Transform t, int layer)
         {
             t.gameObject.layer = layer;
-            foreach (Transform child in t)
-                SetLayerRecursively(child, layer);
+            foreach (Transform child in t) SetLayerRecursively(child, layer);
         }
 
-        private void SetNodeTransform(Transform node, Vector3 point, Vector3 normal)
+        void SetNodeTransform(Transform node, Vector3 point, Vector3 normal)
         {
             node.position = point;
             node.rotation = normal.sqrMagnitude > 0.001f ? Quaternion.LookRotation(normal) : Quaternion.identity;
         }
 
-        private LineRenderer CreateLine(Vector3 a, Vector3 b)
+        LineRenderer CreateLine(Vector3 a, Vector3 b)
         {
             var go = new GameObject("ThreadString");
             go.transform.SetParent(transform, false);
@@ -281,7 +280,7 @@ namespace Noir.Interaction
             return lr;
         }
 
-        private void SetLine(LineRenderer lr, Vector3 a, Vector3 b)
+        void SetLine(LineRenderer lr, Vector3 a, Vector3 b)
         {
             Vector3 mid = (a + b) * 0.5f + Vector3.down * _sag;
             for (int i = 0; i < _segments; i++)
@@ -292,35 +291,9 @@ namespace Noir.Interaction
             }
         }
 
-        private void DestroyPin(Pin pin)
+        void Play(AudioClip clip)
         {
-            if (pin.Line != null)
-                Destroy(pin.Line.gameObject);
-            if (pin.Node != null)
-                Destroy(pin.Node.gameObject);
-        }
-
-        private void Play(AudioClip clip)
-        {
-            if (_audio != null && clip != null)
-                _audio.PlayOneShot(clip);
-        }
-        private void OnValidate()
-        {
-            if (_solutions == null || _solutions.Length == 0)
-                return;
-
-            int length = _solutions[0].ids.Length;
-            var seen = new HashSet<string>();
-            foreach (var s in _solutions)
-            {
-                if (s.ids.Length != length)
-                    Debug.LogWarning($"Solution '{s.suspect}': длина отличается от первого решения", this);
-                if (new HashSet<string>(s.ids).Count != s.ids.Length)
-                    Debug.LogWarning($"Solution '{s.suspect}': id повторяются", this);
-                if (!seen.Add(string.Join(",", s.ids)))
-                    Debug.LogWarning($"Solution '{s.suspect}': дубликат другого решения", this);
-            }
+            if (_audio != null && clip != null) _audio.PlayOneShot(clip);
         }
     }
 }

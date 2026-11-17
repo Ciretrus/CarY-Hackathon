@@ -24,10 +24,7 @@ namespace Noir.Player
         private CinemachineBrain _brain;
         private PlayerMovement _movement;
         private float? _savedBlendTime;
-        private Interactable _hovered; 
-        private bool _threadMode;
-        private ThreadSpool _spool;
-        private Collider _lastHit;
+        private Interactable _hovered;
         private Vector3 _hitPoint;
         private Vector3 _hitNormal;
         private ThreadSession _session;
@@ -57,12 +54,9 @@ namespace Noir.Player
             var anchor = _board.ViewAnchor;
             _boardCamera.transform.SetPositionAndRotation(anchor.position, anchor.rotation);
             _boardHud.SetActive(true);
-            _spool = _board.Spool;
             _session = _board.GetComponent<ThreadSession>();
             if (_session != null)
-                _session.ThreadsActive = false;
-            _threadMode = false;
-            _spool?.SetHighlighted(false);
+                _session.OnBoardEnter();
             _state = State.Entering;
         }
 
@@ -80,14 +74,13 @@ namespace Noir.Player
             UpdateHover();
             ReadButtons();
         }
+
         protected override void OnExit()
         {
             ClearSelection();
             _boardHud.SetActive(false);
-            _spool?.SetHighlighted(false);
-            _threadMode = false;
             if (_session != null)
-                _session.ThreadsActive = false;
+                _session.OnBoardExit();
             _state = State.Idle;
             _board = null;
         }
@@ -99,23 +92,14 @@ namespace Noir.Player
 
             if (Physics.Raycast(ray, out RaycastHit hit, _rayDistance, _pinMask))
             {
-                if (hit.collider != _lastHit)
-                {
-                    _lastHit = hit.collider;
-                    Debug.Log($"[DBG] луч попал в: {hit.collider.name}");
-                }
                 _hitPoint = hit.point;
                 _hitNormal = hit.normal;
+
                 found = hit.collider.GetComponentInParent<Interactable>();
                 if (found is Board)
                     found = null;
                 if (found != null && !found.isActiveAndEnabled)
                     found = null;
-            }
-            else if (_lastHit != null)
-            {
-                _lastHit = null;
-                Debug.Log("[DBG] луч ни во что не попал");
             }
 
             SetHovered(found);
@@ -123,12 +107,12 @@ namespace Noir.Player
 
         private void SetHovered(Interactable next)
         {
-            if (next == _hovered) 
+            if (next == _hovered)
                 return;
-            if (_hovered != null) 
+            if (_hovered != null)
                 _hovered.HoverExit();
             _hovered = next;
-            if (_hovered != null) 
+            if (_hovered != null)
                 _hovered.HoverEnter();
         }
 
@@ -136,21 +120,21 @@ namespace Noir.Player
         {
             var mouse = Mouse.current;
             var keyboard = Keyboard.current;
-            if (mouse == null || keyboard == null) 
+            if (mouse == null || keyboard == null)
                 return;
 
             if (mouse.rightButton.wasPressedThisFrame || keyboard.escapeKey.wasPressedThisFrame)
             {
-                if (_threadMode) 
-                    ToggleThreads();
-                else 
-                    BeginExit();
+                if (_session != null && _session.TryStopThread())
+                    return;
+                BeginExit();
                 return;
             }
 
-            if (mouse.leftButton.wasPressedThisFrame) 
+            if (mouse.leftButton.wasPressedThisFrame)
                 Dispatch(_hovered);
-            if (!_threadMode && keyboard.eKey.wasPressedThisFrame && _selected != null) 
+
+            if ((_session == null || !_session.IsThreading) && keyboard.eKey.wasPressedThisFrame && _selected != null)
                 BeginFlashback();
         }
 
@@ -159,11 +143,11 @@ namespace Noir.Player
             if (location == _selected)
                 return;
 
-            if (_selected != null) 
+            if (_selected != null)
                 _selected.SetSelected(false);
 
             _selected = location;
-            if (_selected != null) 
+            if (_selected != null)
                 _selected.SetSelected(true);
 
             SelectionChanged?.Invoke(_selected);
@@ -184,7 +168,7 @@ namespace Noir.Player
 
         private void BeginFlashback()
         {
-            if (_flashback.IsPlaying) 
+            if (_flashback.IsPlaying)
                 return;
 
             if (_selected?.Spawn == null)
@@ -196,9 +180,10 @@ namespace Noir.Player
             _state = State.Transitioning;
             _flashback.Play(OnWhite, OnFlashbackDone);
         }
+
         private void OnWhite()
         {
-            if (Modes.Current != this) 
+            if (Modes.Current != this)
                 return;
 
             var spawn = _selected != null ? _selected.Spawn : null;
@@ -219,7 +204,7 @@ namespace Noir.Player
 
         private void OnFlashbackDone()
         {
-            if (_savedBlendTime is not float time) 
+            if (_savedBlendTime is not float time)
                 return;
 
             var blend = _brain.DefaultBlend;
@@ -227,33 +212,21 @@ namespace Noir.Player
             _brain.DefaultBlend = blend;
             _savedBlendTime = null;
         }
+
         private void Dispatch(Interactable target)
         {
             switch (target)
             {
-                case ThreadSpool:
-                    ToggleThreads();
+                case BoardSuspect suspect:
+                    _session?.ClickSuspect(suspect, _hitPoint, _hitNormal);
                     break;
-                case ThreadEraser:
-                    _session?.EraseAll();
+                case BoardEvidence evidence:
+                    _session?.ClickEvidence(evidence, _hitPoint, _hitNormal);
                     break;
-                case BoardLocation location when !_threadMode:
+                case BoardLocation location when _session == null || !_session.IsThreading:
                     Select(location);
                     break;
-                case BoardEvidence evidence when _threadMode:
-                    _session?.PlacePin(evidence, _hitPoint, _hitNormal);
-                    break;
             }
-        }
-
-        private void ToggleThreads()
-        {
-            _threadMode = !_threadMode;
-            _spool?.SetHighlighted(_threadMode);
-            if (_session != null)
-                _session.ThreadsActive = _threadMode;
-            if (_threadMode)
-                Select(null);
         }
     }
 }
