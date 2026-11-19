@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Audio/Camera.meta
 guid: d394f9de914672a46aa530e861ba490c
+========
+guid: d45e945278166fb4d991ad7ab2636315
+>>>>>>>> ciretrus:Assets/Models/Uliki/post-it-notes.meta
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}

@@ -1,6 +1,11 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Assets/Scenes/AmbientTest.unity.meta
 guid: c36d5a63d91ddf1428b200cd44f2c744
 DefaultImporter:
+========
+guid: 653785575bd14204ca81345865ba5792
+PrefabImporter:
+>>>>>>>> ciretrus:Assets/Models/Juice/MILANO95.prefab.meta
   externalObjects: {}
   userData: 
   assetBundleName: 
