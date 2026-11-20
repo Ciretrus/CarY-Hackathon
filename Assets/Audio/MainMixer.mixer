@@ -147,9 +147,73 @@ AudioMixerSnapshotController:
   m_AudioMixer: {fileID: 24100000}
   m_SnapshotID: 9eb12193bd133cd46a21d75331a2c0be
   m_FloatValues:
+    628a60a05ecd4e9439c91408f723925d: 1
+    80b39e22288f8074aa0ee66c0c7ed19e: 135
+    b393da9242af2284d9490fd985c2ef45: 1.6
+    124883d26f1637b47a6ad4e4c7dbe4df: 0.161
     29fcd2b357ae01346a78ea31b1c09c26: 22000
+    ff07ebc5df32d6140810fce57b10069f: -7401
+    e4cbbed5589a8d848bf4ba359c9514c5: 0.0824
+    9c0d80d6d1dbfad4595613dccda0a62f: -3537
     1f08c57c7a48eea4a815ba7f0633ae1e: -80
+    ba93371e6e0d20a4b8a79a0d634bb253: 0.5
   m_TransitionOverrides: {}
+--- !u!244 &-869737761937819613
+AudioMixerEffectController:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_EffectID: 7c1228bf93b0f7343aadde58beaf7be3
+  m_EffectName: SFX Reverb
+  m_MixLevel: b84ba9ba2b2b6b7419d18979e98c4cc0
+  m_Parameters:
+  - m_ParameterName: Dry Level
+    m_GUID: f73d73a3223c20a46bb29a708e21d355
+  - m_ParameterName: Room
+    m_GUID: ff07ebc5df32d6140810fce57b10069f
+  - m_ParameterName: Room HF
+    m_GUID: c4c196062a2686b49841d92e27781207
+  - m_ParameterName: Decay Time
+    m_GUID: b393da9242af2284d9490fd985c2ef45
+  - m_ParameterName: Decay HF Ratio
+    m_GUID: 22ad96956956a864f8618375cda09ef4
+  - m_ParameterName: Reflections
+    m_GUID: 9c0d80d6d1dbfad4595613dccda0a62f
+  - m_ParameterName: Reflect Delay
+    m_GUID: 124883d26f1637b47a6ad4e4c7dbe4df
+  - m_ParameterName: Reverb
+    m_GUID: 80b39e22288f8074aa0ee66c0c7ed19e
+  - m_ParameterName: Reverb Delay
+    m_GUID: e4cbbed5589a8d848bf4ba359c9514c5
+  - m_ParameterName: Diffusion
+    m_GUID: 1b83a1232599c63478d12b383472f646
+  - m_ParameterName: Density
+    m_GUID: fdc0ea12f0121b14d87bf4568977058e
+  - m_ParameterName: HF Reference
+    m_GUID: f77fb2fbf9ee54e4f9e91c93a034bac3
+  - m_ParameterName: Room LF
+    m_GUID: 94bf95c535ef5fe409c1aad58caecf84
+  - m_ParameterName: LF Reference
+    m_GUID: f25eb20171039dd4098d743e5e5bc7b7
+  m_SendTarget: {fileID: 0}
+  m_EnableWetMix: 0
+  m_Bypass: 0
+--- !u!244 &-867696250893765359
+AudioMixerEffectController:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_EffectID: a0d38e1d7d6f7bc4ab488e4ae0d872bd
+  m_EffectName: Attenuation
+  m_MixLevel: d8cd3d4aa5f0c1b48b41f54e47b64477
+  m_Parameters: []
+  m_SendTarget: {fileID: 0}
+  m_EnableWetMix: 0
+  m_Bypass: 0
 --- !u!244 &-589781342894536082
 AudioMixerEffectController:
   m_ObjectHideFlags: 3
@@ -207,9 +271,10 @@ AudioMixerController:
     - d4a6559396f083b4fb787fdeb4ff6686
     - 8bacb80e6a0586f4388e4a6fe81506b0
     - 5421d36410889104188e785d63568ab7
+    - 81a1a49070c54eb4b901fdd12948e06e
     name: View
   m_CurrentViewIndex: 0
-  m_TargetSnapshot: {fileID: -4444803316557454233}
+  m_TargetSnapshot: {fileID: -1408381262874881098}
 --- !u!243 &24300002
 AudioMixerGroupController:
   m_ObjectHideFlags: 0
@@ -326,6 +391,26 @@ AudioMixerEffectController:
   m_SendTarget: {fileID: 0}
   m_EnableWetMix: 0
   m_Bypass: 0
+--- !u!243 &7554301517423336042
+AudioMixerGroupController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Footsteps
+  m_AudioMixer: {fileID: 24100000}
+  m_GroupID: 81a1a49070c54eb4b901fdd12948e06e
+  m_Children: []
+  m_Volume: 38ba8658f4524374f89860103c989fb2
+  m_Pitch: 4b544a943cede0f4a93d317acc37e3b0
+  m_Send: 00000000000000000000000000000000
+  m_Effects:
+  - {fileID: -867696250893765359}
+  - {fileID: -869737761937819613}
+  m_UserColorIndex: 0
+  m_Mute: 0
+  m_Solo: 0
+  m_BypassEffects: 0
 --- !u!243 &8030013196898968375
 AudioMixerGroupController:
   m_ObjectHideFlags: 0
@@ -335,7 +420,8 @@ AudioMixerGroupController:
   m_Name: SFX
   m_AudioMixer: {fileID: 24100000}
   m_GroupID: 8c774b0dc9658bf469bd83d759843558
-  m_Children: []
+  m_Children:
+  - {fileID: 7554301517423336042}
   m_Volume: 90ba535f05557e642bcee7ccb76be6a8
   m_Pitch: 609350300848491458ec9b85746d7562
   m_Send: 00000000000000000000000000000000
