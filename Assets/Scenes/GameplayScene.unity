@@ -2500,6 +2500,26 @@ PrefabInstance:
       propertyPath: closeOnEscape
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 455526372201681495, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
+      propertyPath: m_text
+      value: "\u0444\u044B\u0432\u0444\u044B\u0444\u044B\u0432\u0444\u044B\u0432"
+      objectReference: {fileID: 0}
+    - target: {fileID: 455526372201681495, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
+      propertyPath: m_fontColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 455526372201681495, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
+      propertyPath: m_fontColor.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 455526372201681495, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
+      propertyPath: m_fontColor.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 455526372201681495, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4294967295
+      objectReference: {fileID: 0}
     - target: {fileID: 563651052838084470, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
       propertyPath: m_AdditionalShaderChannelsFlag
       value: 25
@@ -2564,6 +2584,10 @@ PrefabInstance:
       propertyPath: '_explorationControls.Array.data[0]'
       value: 
       objectReference: {fileID: 2549592498801537729}
+    - target: {fileID: 3546763573312076543, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4021817419633901406, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
       propertyPath: m_LocalPosition.x
       value: -5.165
