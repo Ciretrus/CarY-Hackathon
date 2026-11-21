@@ -981,7 +981,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Noir.Interaction.ClueDetector
   _registry: {fileID: 0}
   _audio: {fileID: 2626522342135674852}
-  _foundSound: {fileID: 8300000, guid: 52c527ae4ca86af418aad888bdf9aa9d, type: 3}
+  _foundSound: {fileID: 8300000, guid: cb1f06163e3dd1c419e7ee437d07e669, type: 3}
   _showAngle: 25
   _hideAngle: 35
 --- !u!114 &3003495658537686507

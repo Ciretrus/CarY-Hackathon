@@ -52,9 +52,12 @@ namespace Noir.Interaction
             if (Current == null)
                 return false;
 
+            var line = Current.FoundLine;
             _registry.Collect(Current.EvidenceId);
             _spots.Remove(Current);
             SetCurrent(null);
+            if (line != null && _audio != null)
+                _audio.PlayOneShot(line);
             return true;
         }
 
@@ -88,16 +91,19 @@ namespace Noir.Interaction
 
             Current = spot;
             if (spot != null && _announced.Add(spot))
-                Announce(spot);
+                PlayFoundCue();
 
             VisibleChanged?.Invoke(spot);
         }
 
-        private void Announce(ClueSpot spot)
+        public float PlayFoundCue()
         {
-            var clip = spot.FoundLine != null ? spot.FoundLine : _foundSound;
-            if (clip != null)
-                _audio.PlayOneShot(clip);
+            if (_foundSound == null || _audio == null || !_audio.isActiveAndEnabled)
+                return 0f;
+
+            _audio.PlayOneShot(_foundSound);
+            float pitch = Mathf.Abs(_audio.pitch);
+            return pitch > 0f ? _foundSound.length / pitch : 0f;
         }
     }
 }

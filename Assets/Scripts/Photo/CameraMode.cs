@@ -1,3 +1,4 @@
+using System.Collections;
 using DG.Tweening;
 using Noir.Interaction;
 using Noir.Player;
@@ -21,12 +22,14 @@ namespace Noir.Photo
 
         [SerializeField] private MouseWheelZoom _zoom = new();
 
+        private ClueDetector _detector;
         private State _state;
         private bool _lowerRequested;
 
         protected override void Awake()
         {
             base.Awake();
+            _detector = GetComponent<ClueDetector>();
 
             if (_registry == null)
                 _registry = FindFirstObjectByType<EvidenceRegistry>(FindObjectsInactive.Include);
@@ -57,6 +60,7 @@ namespace Noir.Photo
             if (_lowerRequested)
             {
                 _state = State.Lowering;
+                _zoom.End();
                 _hud.Lower(_capture.End).OnComplete(Close);
                 return;
             }
@@ -87,8 +91,12 @@ namespace Noir.Photo
                 _audio.PlayOneShot(_shutterSound);
 
             bool isEvidence = clue != null && _registry.Collect(clue.EvidenceId, photo);
-            if (isEvidence && clue.FoundLine != null)
-                _audio.PlayOneShot(clue.FoundLine);
+            if (isEvidence)
+            {
+                float delay = _detector != null ? _detector.PlayFoundCue() : 0f;
+                if (clue.FoundLine != null && _audio != null)
+                    StartCoroutine(PlayPhotoLine(clue.FoundLine, delay));
+            }
 
             _hud.Shot(photo).OnComplete(() =>
             {
@@ -96,6 +104,14 @@ namespace Noir.Photo
                     Destroy(photo);
                 _state = State.Shooting;
             });
+        }
+
+        private IEnumerator PlayPhotoLine(AudioClip line, float delay)
+        {
+            if (delay > 0f)
+                yield return new WaitForSecondsRealtime(delay);
+            if (_audio != null && _audio.isActiveAndEnabled)
+                _audio.PlayOneShot(line);
         }
     }
 }
