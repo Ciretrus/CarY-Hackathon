@@ -17,6 +17,8 @@ namespace Noir.Photo
         [SerializeField] private AudioClip _shutterSound;
         [SerializeField] private LayerMask _occluders = ~0;
 
+        [SerializeField] private MouseWheelZoom _zoom = new();
+
         private State _state;
 
         protected override void Awake()
@@ -29,6 +31,7 @@ namespace Noir.Photo
 
         protected override void OnEnter()
         {
+            _zoom.Begin(_capture.Camera);
             _state = State.Raising;
             _hud.Raise(_capture.Begin).OnComplete(() => _state = State.Shooting);
         }
@@ -40,6 +43,8 @@ namespace Noir.Photo
 
             var mouse = Mouse.current;
 
+            if (mouse == null) return;
+
             if (mouse.rightButton.wasPressedThisFrame)
             {
                 _state = State.Lowering;
@@ -49,10 +54,13 @@ namespace Noir.Photo
 
             if (mouse.leftButton.wasPressedThisFrame)
                 Shoot();
+            else
+                _zoom.Tick(mouse);
         }
 
         protected override void OnExit()
         {
+            _zoom.End();
             _capture.End();
             _hud.ResetAll();
         }

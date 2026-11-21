@@ -13,6 +13,9 @@ namespace Noir.Interaction
         [SerializeField] float moveDuration = 0.25f;
         [SerializeField] float takeDuration = 0.2f;
 
+        [SerializeField] Camera inspectCamera;
+        [SerializeField] MouseWheelZoom zoom = new();
+
         Transform item;
         Vector3 startPosition;
         Quaternion startRotation;
@@ -26,6 +29,7 @@ namespace Noir.Interaction
 
         protected override void OnEnter()
         {
+            zoom.Begin(inspectCamera != null ? inspectCamera : Camera.main);
             startPosition = item.position;
             startRotation = item.rotation;
             taken = false;
@@ -50,6 +54,7 @@ namespace Noir.Interaction
                 return;
             }
 
+            zoom.Tick(Mouse.current);
             Vector2 delta = Mouse.current.delta.ReadValue() * rotateSpeed;
             item.Rotate(inspectPoint.up, -delta.x, Space.World);
             item.Rotate(inspectPoint.right, delta.y, Space.World);
@@ -59,6 +64,7 @@ namespace Noir.Interaction
 
         protected override void OnExit()
         {
+            zoom.End();
             detector.End();
             item.DOKill();
 
