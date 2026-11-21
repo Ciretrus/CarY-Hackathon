@@ -38,7 +38,7 @@ AudioMixerGroupController:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Rain
+  m_Name: OutsideRain
   m_AudioMixer: {fileID: 24100000}
   m_GroupID: 8bacb80e6a0586f4388e4a6fe81506b0
   m_Children: []
@@ -52,6 +52,25 @@ AudioMixerGroupController:
   m_Mute: 0
   m_Solo: 0
   m_BypassEffects: 0
+--- !u!245 &-5439199617657112472
+AudioMixerSnapshotController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Office
+  m_AudioMixer: {fileID: 24100000}
+  m_SnapshotID: 1d604470d2f6d0e46864cd736000e76e
+  m_FloatValues:
+    bd63bae0a0f265c4e8d27c7e1569deea: 0.537
+    0ab6065289f5cff489c62fc4095aa35e: 1
+    29fcd2b357ae01346a78ea31b1c09c26: 6000
+    c6370027145339349826db194afb6a11: -80
+    69e6e0797fa56614f9bd6a9ac8dc762d: 0.325
+    ea678e3aca037064daa50f46b72676de: 8.7
+    183c692b284f45f4999e022144e05ed4: 274
+    1f08c57c7a48eea4a815ba7f0633ae1e: 0.27000841
+  m_TransitionOverrides: {}
 --- !u!243 &-4822723771065041852
 AudioMixerGroupController:
   m_ObjectHideFlags: 0
@@ -257,6 +276,7 @@ AudioMixerController:
   - {fileID: -426654093819170543}
   - {fileID: -7972523965256988751}
   - {fileID: -4444803316557454233}
+  - {fileID: -5439199617657112472}
   m_StartSnapshot: {fileID: -1408381262874881098}
   m_SuspendThreshold: -80
   m_EnableSuspend: 1
@@ -274,7 +294,7 @@ AudioMixerController:
     - 81a1a49070c54eb4b901fdd12948e06e
     name: View
   m_CurrentViewIndex: 0
-  m_TargetSnapshot: {fileID: -1408381262874881098}
+  m_TargetSnapshot: {fileID: -5439199617657112472}
 --- !u!243 &24300002
 AudioMixerGroupController:
   m_ObjectHideFlags: 0

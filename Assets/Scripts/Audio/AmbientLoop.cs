@@ -18,7 +18,7 @@ namespace Noir.Audio
         [SerializeField] private bool _use2DDistanceZone = true;
 
         [Tooltip("Время полного затухания при выходе и появления при возвращении.")]
-        [SerializeField, Min(0f)] private float _zoneFadeDuration = 1.5f;
+        [SerializeField, Min(0f)] private float _zoneFadeDuration = .5f;
 
         private AudioSource _source;
         private AudioListener _listener;
