@@ -28,9 +28,9 @@ namespace Noir.Player
             magnification = 1f;
         }
 
-        public void Tick(Mouse mouse)
+        public bool Tick(Mouse mouse)
         {
-            if (view == null || mouse == null) return;
+            if (view == null || mouse == null) return false;
             float scroll = mouse.scroll.ReadValue().y;
             var next = brain != null && brain.isActiveAndEnabled
                 ? brain.ActiveVirtualCamera as CinemachineCamera : null;
@@ -41,13 +41,15 @@ namespace Noir.Player
                 live = next;
             }
 
+            if (live == null && brain != null && brain.isActiveAndEnabled && brain.ActiveVirtualCamera != null)
+                return false;
+
+            float previous = magnification;
             if (scroll != 0f)
                 magnification = Mathf.Clamp(magnification + Mathf.Sign(scroll) * step, 1f, maxMagnification);
-            else if (!changed || magnification == 1f)
-                return;
-
-            if (live == null && brain != null && brain.isActiveAndEnabled && brain.ActiveVirtualCamera != null)
-                return;
+            bool stepped = magnification != previous;
+            if (!stepped && (!changed || magnification == 1f))
+                return false;
 
             if (!applied)
             {
@@ -59,6 +61,7 @@ namespace Noir.Player
             float halfAngle = initialFov * Mathf.Deg2Rad * 0.5f;
             float fov = 2f * Mathf.Atan(Mathf.Tan(halfAngle) / magnification) * Mathf.Rad2Deg;
             SetLens(fov, initialSize / magnification);
+            return stepped;
         }
 
         private void SetLens(float fov, float size)

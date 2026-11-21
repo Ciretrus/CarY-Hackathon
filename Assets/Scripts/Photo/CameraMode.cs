@@ -15,11 +15,14 @@ namespace Noir.Photo
         [SerializeField] private EvidenceRegistry _registry;
         [SerializeField] private AudioSource _audio;
         [SerializeField] private AudioClip _shutterSound;
+        [SerializeField] private AudioClip _zoomSound;
+        [SerializeField, Range(0f, 1f)] private float _zoomVolume = 0.55f;
         [SerializeField] private LayerMask _occluders = ~0;
 
         [SerializeField] private MouseWheelZoom _zoom = new();
 
         private State _state;
+        private bool _lowerRequested;
 
         protected override void Awake()
         {
@@ -31,6 +34,7 @@ namespace Noir.Photo
 
         protected override void OnEnter()
         {
+            _lowerRequested = false;
             _zoom.Begin(_capture.Camera);
             _state = State.Raising;
             _hud.Raise(_capture.Begin).OnComplete(() => _state = State.Shooting);
@@ -38,24 +42,31 @@ namespace Noir.Photo
 
         protected override void Tick()
         {
-            if (_state != State.Shooting)
+            if (_state == State.Lowering)
                 return;
 
             var mouse = Mouse.current;
+            var keyboard = Keyboard.current;
+            if ((keyboard != null && keyboard.rKey.wasPressedThisFrame) ||
+                (mouse != null && mouse.rightButton.wasPressedThisFrame))
+                _lowerRequested = true;
 
-            if (mouse == null) return;
+            if (_state != State.Shooting)
+                return;
 
-            if (mouse.rightButton.wasPressedThisFrame)
+            if (_lowerRequested)
             {
                 _state = State.Lowering;
                 _hud.Lower(_capture.End).OnComplete(Close);
                 return;
             }
 
+            if (mouse == null) return;
+
             if (mouse.leftButton.wasPressedThisFrame)
                 Shoot();
-            else
-                _zoom.Tick(mouse);
+            else if (_zoom.Tick(mouse) && _zoomSound != null && _audio != null)
+                _audio.PlayOneShot(_zoomSound, _zoomVolume);
         }
 
         protected override void OnExit()
