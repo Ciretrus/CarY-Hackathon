@@ -20,22 +20,65 @@ namespace Noir.Photo
         private void OnEnable() => _all.Add(this);
         private void OnDisable() => _all.Remove(this);
 
-        public static PhotoClue FindInShot(Camera camera, Rect viewport, EvidenceRegistry registry, LayerMask occluders)
+        public static PhotoClue FindInShot(
+    Camera camera, Rect viewport, EvidenceRegistry registry, LayerMask occluders)
         {
+            if (camera == null || registry == null)
+            {
+                Debug.LogError($"[PhotoClue] Не назначена ссылка. Camera={camera}, Registry={registry}");
+                return null;
+            }
+
+            Debug.Log($"[PhotoClue] Снимок. Камера: {camera.name}, активных улик: {_all.Count}");
+
             PhotoClue best = null;
             float bestOffset = float.MaxValue;
 
             foreach (var clue in _all)
             {
-                if (string.IsNullOrWhiteSpace(clue._evidenceId) || registry.IsFound(clue._evidenceId))
-                    continue;
+                string label = $"[PhotoClue] {clue.name} (ID='{clue._evidenceId}')";
 
-                Vector3 point = camera.WorldToViewportPoint(clue.transform.position);
-                if (point.z <= 0f || point.z > clue._maxDistance || !viewport.Contains(point))
+                if (string.IsNullOrWhiteSpace(clue._evidenceId))
+                {
+                    Debug.Log($"{label}: пустой Evidence Id.", clue);
                     continue;
+                }
 
-                if (IsOccluded(camera.transform.position, clue.transform.position, occluders))
+                if (registry.IsFound(clue._evidenceId))
+                {
+                    Debug.Log($"{label}: улика уже найдена.", clue);
                     continue;
+                }
+
+                Vector3 target = clue.transform.position;
+                Vector3 point = camera.WorldToViewportPoint(target);
+
+                if (point.z <= 0f || point.z > clue._maxDistance)
+                {
+                    Debug.Log($"{label}: глубина {point.z:F2}, допустимо от 0 до {clue._maxDistance:F2}.", clue);
+                    continue;
+                }
+
+                if (!viewport.Contains(point))
+                {
+                    Debug.Log($"{label}: точка вне кадра. X={point.x:F2}, Y={point.y:F2}, " +
+                              $"границы X=[{viewport.xMin:F2}, {viewport.xMax:F2}], " +
+                              $"Y=[{viewport.yMin:F2}, {viewport.yMax:F2}].", clue);
+                    continue;
+                }
+
+                if (Physics.Linecast(camera.transform.position, target, out RaycastHit hit,
+                        occluders, QueryTriggerInteraction.Ignore))
+                {
+                    float gap = Vector3.Distance(hit.point, target);
+                    if (gap > OcclusionTolerance)
+                    {
+                        Debug.Log($"{label}: обзор перекрывает '{hit.collider.name}', " +
+                                  $"от поверхности коллайдера до метки {gap:F2}, " +
+                                  $"допуск {OcclusionTolerance:F2}.", hit.collider);
+                        continue;
+                    }
+                }
 
                 float offset = Vector2.Distance(point, viewport.center);
                 if (offset < bestOffset)
@@ -44,6 +87,11 @@ namespace Noir.Photo
                     bestOffset = offset;
                 }
             }
+
+            if (best != null)
+                Debug.Log($"[PhotoClue] Выбрана улика '{best.EvidenceId}'.", best);
+            else
+                Debug.Log("[PhotoClue] Подходящей улики в кадре нет.");
 
             return best;
         }

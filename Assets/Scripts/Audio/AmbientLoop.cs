@@ -33,9 +33,8 @@ namespace Noir.Audio
         private void Awake()
         {
             if (!TryGetComponent(out _source))
-            {
-                _source = gameObject.AddComponent<AudioSource>();
-                _source.volume = _volume;
+            {                
+                _source = gameObject.AddComponent<AudioSource>();                
             }
 
             if (_source.clip == null)
@@ -46,6 +45,7 @@ namespace Noir.Audio
 
             _source.playOnAwake = false;
             _source.loop = true;
+            _source.volume = _volume;
 
             _baseVolume = _source.volume;
             _originalSpatialBlend = _source.spatialBlend;
