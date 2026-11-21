@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Ladder
   - LadderLandingPad
+  - BlurTrigger
   layers:
   - Default
   - TransparentFX
