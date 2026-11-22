@@ -18,6 +18,7 @@ namespace Noir.Interaction
         [SerializeField] private float _stringWidth = 0.004f;
         [SerializeField] private int _segments = 12;
         [SerializeField] private float _sag = 0.05f;
+        [SerializeField] private float _stringOffset = 0.02f;
 
         [Header("Logic")]
         [SerializeField] private EvidenceRegistry _registry;
@@ -253,22 +254,26 @@ namespace Noir.Interaction
             }
 
             Vector3 anchor = _chain.Count > 0 ? _chain[_chain.Count - 1].Point : _suspectPoint;
-            Vector3 cursor = CursorPoint(anchor);
+            anchor = WithOffset(anchor);
+            Vector3 cursor = CursorPoint(anchor); // курсор автоматически попадёт в ту же смещённую плоскость
             if (!_liveRope.Active) _liveRope.Begin(anchor);
             _liveRope.SetEndpoints(anchor, cursor);
         }
 
-        Vector3 CursorPoint(Vector3 fallback)
+        Vector3 CursorPoint(Vector3 anchor)
         {
             var mouse = Mouse.current;
             var cam = Camera.main;
-            if (mouse == null || cam == null) return fallback;
+            if (mouse == null || cam == null) return anchor;
+
             var ray = cam.ScreenPointToRay(mouse.position.ReadValue());
-            Vector3 n = transform.forward;
+            Vector3 n = cam.transform.forward;
             float denom = Vector3.Dot(n, ray.direction);
-            if (Mathf.Abs(denom) < 1e-4f) return fallback;
-            float t = Vector3.Dot(n, transform.position - ray.origin) / denom;
-            if (t <= 0f) return fallback;
+            if (Mathf.Abs(denom) < 1e-4f) return anchor;
+
+            float t = Vector3.Dot(n, anchor - ray.origin) / denom;
+            if (t <= 0f) return anchor;
+
             return ray.GetPoint(t);
         }
 
@@ -300,6 +305,8 @@ namespace Noir.Interaction
 
         void SetLine(LineRenderer lr, Vector3 a, Vector3 b)
         {
+            a = WithOffset(a);
+            b = WithOffset(b);
             Vector3 mid = (a + b) * 0.5f + Vector3.down * _sag;
             for (int i = 0; i < _segments; i++)
             {
@@ -313,5 +320,12 @@ namespace Noir.Interaction
         {
             if (_audio != null && clip != null) _audio.PlayOneShot(clip);
         }
+
+        Vector3 WithOffset(Vector3 point)
+        {
+            var cam = Camera.main;
+            return cam != null ? point - cam.transform.forward * _stringOffset : point;
+        }
+
     }
 }
