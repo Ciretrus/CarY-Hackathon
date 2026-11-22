@@ -1,9 +1,10 @@
+using System.Collections.Generic;
 using DG.Tweening;
 using Noir.Player;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
-using static Unity.Cinemachine.CinemachineOrbitalTransposer;
+using UnityEngine.Rendering.Universal;
 
 namespace Noir.Interaction
 {
@@ -20,7 +21,6 @@ namespace Noir.Interaction
         [SerializeField, Min(0.05f)] float maxDistance = 0.75f;
         [SerializeField, Min(0.01f)] float distanceStep = 0.05f;
         [SerializeField, Min(0f)] float zoomSmoothTime = 0.08f;
-        [SerializeField] LayerMask obstacles = ~0;
         [SerializeField] Volume globalVolume;
         [SerializeField] VolumeProfile inspectProfile;
 
@@ -28,10 +28,17 @@ namespace Noir.Interaction
         Transform item;
         Pose home;
         Bounds localBounds;
-        BoxCollider probe;
+        readonly List<Collider> suspended = new List<Collider>();
+        readonly List<Rigidbody> dynamicBodies = new List<Rigidbody>();
+        int reservedLayer = -1;
+        Camera overlay;
+        UniversalAdditionalCameraData baseData;
+        int foregroundMask;
+        bool baseIncludedLayer;
+        readonly Dictionary<GameObject, int> originalLayers = new Dictionary<GameObject, int>();
         Tween returnMotion;
         float distance, requested, velocity, elapsed;
-        bool taken, swapped, acquiring;
+        bool taken, swapped;
         VolumeProfile previousShared, previousInstance;
 
         public void Inspect(Transform target)
@@ -50,14 +57,20 @@ namespace Noir.Interaction
             distance = requested = Mathf.Clamp(holdDistance, minDistance, Mathf.Max(minDistance, maxDistance));
             elapsed = velocity = 0f;
             taken = false;
-            acquiring = true;
             localBounds = MeasureItem();
-            if (probe == null)
+            foreach (var collider in item.GetComponentsInChildren<Collider>(true))
             {
-                var holder = new GameObject("Inspect bounds") { hideFlags = HideFlags.HideAndDontSave };
-                probe = holder.AddComponent<BoxCollider>();
-                probe.enabled = false;
+                if (!collider.enabled) continue;
+                suspended.Add(collider);
+                collider.enabled = false;
             }
+            foreach (var body in item.GetComponentsInChildren<Rigidbody>(true))
+            {
+                if (body.isKinematic) continue;
+                dynamicBodies.Add(body);
+                body.isKinematic = true;
+            }
+            if (cameraView != null) BeginForeground();
             if (globalVolume != null && inspectProfile != null)
             {
                 previousShared = globalVolume.sharedProfile;
@@ -118,50 +131,11 @@ namespace Noir.Interaction
             // Move the visual centre, even on props whose pivot is at one edge.
             elapsed += Time.deltaTime;
             float t = moveDuration > 0f ? Mathf.Clamp01(elapsed / moveDuration) : 1f;
-            Pose start = new Pose(item.position, item.rotation);
-            int steps = Mathf.Max(1, Mathf.CeilToInt(Quaternion.Angle(start.rotation, rotation) / 4f));
-            for (int i = 1; i <= steps; i++)
-            {
-                Quaternion next = Quaternion.Slerp(start.rotation, rotation, (float)i / steps);
-                Pose current = new Pose(item.position, item.rotation);
-                item.rotation = next;
-                Box(out Vector3 centre, out Vector3 half);
-                float safe = MinimumDistance(view, ray, next, half);
-                Vector3 dest = view.position + ray * Mathf.Max(distance, safe) - (centre - item.position);
-                item.rotation = current.rotation;
-                Pose candidate = new Pose(Vector3.Lerp(home.position, dest, t * (2f - t)), next);
-                if (TryPose(candidate)) continue;
-                // Keep the reachable portion of a wheel step near a wall.
-                float low = 0f, high = 1f;
-                for (int attempt = 0; attempt < 6; attempt++)
-                {
-                    float mid = (low + high) * 0.5f;
-                    item.SetPositionAndRotation(current.position, current.rotation);
-                    if (TryPose(new Pose(Vector3.Lerp(current.position, candidate.position, mid),
-                        Quaternion.Slerp(current.rotation, next, mid)))) low = mid;
-                    else high = mid;
-                }
-                item.SetPositionAndRotation(Vector3.Lerp(current.position, candidate.position, low),
-                    Quaternion.Slerp(current.rotation, next, low));
-                break;
-            }
-            if (acquiring && t >= 1f)
-            {
-                acquiring = false;
-                // A desk edge or an enclosing furniture collider can block the
-                // straight trip from the authored pose. Finish on the camera side.
-                Box(out Vector3 centre, out Vector3 half);
-                float near = MinimumDistance(view, ray, item.rotation, half);
-                float desired = Mathf.Max(distance, near);
-                Vector3 endCentre = view.position + ray * desired;
-                if ((centre - endCentre).sqrMagnitude > 0.0001f &&
-                    !PlaceInFreeSpace(view.position, ray, near, desired, centre, half))
-                {
-                    Debug.LogWarning($"Inspect: no free holding position for {item.name}.", item);
-                    Close();
-                    return;
-                }
-            }
+            item.rotation = rotation;
+            Box(out Vector3 centre, out Vector3 half);
+            float safe = MinimumDistance(view, ray, rotation, half);
+            Vector3 dest = view.position + ray * Mathf.Max(distance, safe) - (centre - item.position);
+            item.position = Vector3.Lerp(home.position, dest, t * (2f - t));
             detector.Tick();
         }
 
@@ -170,31 +144,6 @@ namespace Noir.Interaction
             Vector3 f = Quaternion.Inverse(rotation) * view.forward;
             float depth = Mathf.Abs(f.x) * half.x + Mathf.Abs(f.y) * half.y + Mathf.Abs(f.z) * half.z;
             return (cameraView.nearClipPlane + depth + 0.025f) / Vector3.Dot(ray, view.forward);
-        }
-
-        bool PlaceInFreeSpace(Vector3 eye, Vector3 ray, float near, float desired, Vector3 centre, Vector3 half)
-        {
-            // Exclude positions behind a wall even if the space beyond it is empty.
-            foreach (var hit in Physics.RaycastAll(eye, ray, desired, obstacles, QueryTriggerInteraction.Ignore))
-                if (IsObstacle(hit.collider)) desired = Mathf.Min(desired, hit.distance - 0.002f);
-            if (desired < near) return false;
-
-            for (int step = 0; step <= 16; step++)
-            {
-                Vector3 candidate = eye + ray * Mathf.Lerp(desired, near, step / 16f);
-                bool clear = true;
-                foreach (var other in Physics.OverlapBox(candidate, half, item.rotation, obstacles,
-                    QueryTriggerInteraction.Ignore))
-                {
-                    if (!IsObstacle(other)) continue;
-                    clear = false;
-                    break;
-                }
-                if (!clear) continue;
-                item.position += candidate - centre;
-                return true;
-            }
-            return false;
         }
 
         // Project the scaled local box into the item's rotation frame. This also
@@ -212,51 +161,73 @@ namespace Noir.Interaction
             half = Vector3.Max(half, Vector3.one * 0.001f);
         }
 
-        bool IsObstacle(Collider other) =>
-            !other.transform.IsChildOf(item) && !other.transform.IsChildOf(Modes.transform);
-
-        float Penetration(Collider other, Vector3 centre, Quaternion rotation, Vector3 half, out Vector3 away)
+        void BeginForeground()
         {
-            probe.size = half * 2f;
-            return Physics.ComputePenetration(probe, centre, rotation, other, other.transform.position,
-                other.transform.rotation, out away, out float depth) ? depth : 0f;
-        }
+            baseData = cameraView.GetUniversalAdditionalCameraData();
+            var stack = baseData.cameraStack;
+            if (stack == null) return;
 
-        bool TryPose(Pose next)
-        {
-            Pose old = new Pose(item.position, item.rotation);
-            Box(out Vector3 from, out Vector3 oldHalf);
-            item.SetPositionAndRotation(next.position, next.rotation);
-            Box(out Vector3 to, out Vector3 half);
-            Vector3 travel = to - from;
-            float length = travel.magnitude;
-            if (length > 0.00001f)
+            // Reserve an unused rendering layer for this inspection only.
+            if (reservedLayer < 0)
             {
-                foreach (var hit in Physics.BoxCastAll(from, oldHalf, travel / length, old.rotation,
-                    length, obstacles, QueryTriggerInteraction.Ignore))
+                int occupied = 0;
+                foreach (var renderer in FindObjectsByType<Renderer>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    occupied |= 1 << renderer.gameObject.layer;
+                for (int candidate = 31; candidate >= 8; candidate--)
                 {
-                    if (!IsObstacle(hit.collider)) continue;
-                    // Props may begin resting on, or slightly embedded in, a tabletop.
-                    if (Penetration(hit.collider, from, old.rotation, oldHalf, out var away) > 0f &&
-                        Vector3.Dot(away, travel) >= 0f) continue;
-                    if (hit.distance <= 0f)
-                    {
-                        Vector3 surface = hit.collider.ClosestPointOnBounds(from);
-                        if (Vector3.Dot(from - surface, travel) > 0f) continue;
-                    }
-                    item.SetPositionAndRotation(old.position, old.rotation);
-                    return false;
+                    if ((occupied & (1 << candidate)) != 0 || !string.IsNullOrEmpty(LayerMask.LayerToName(candidate))) continue;
+                    reservedLayer = candidate;
+                    break;
                 }
             }
-            foreach (Collider other in Physics.OverlapBox(to, half, next.rotation, obstacles, QueryTriggerInteraction.Ignore))
+            if (reservedLayer < 0) return;
+            int layer = reservedLayer;
+            foregroundMask = 1 << layer;
+            foreach (var renderer in item.GetComponentsInChildren<Renderer>(true))
             {
-                if (!IsObstacle(other)) continue;
-                float after = Penetration(other, to, next.rotation, half, out _);
-                if (after <= 0f || after <= Penetration(other, from, old.rotation, oldHalf, out _) + 0.00001f) continue;
-                item.SetPositionAndRotation(old.position, old.rotation);
-                return false;
+                GameObject part = renderer.gameObject;
+                if (!originalLayers.ContainsKey(part))
+                {
+                    originalLayers.Add(part, part.layer);
+                    part.layer = layer;
+                }
             }
-            return true;
+            baseIncludedLayer = (cameraView.cullingMask & foregroundMask) != 0;
+            cameraView.cullingMask &= ~foregroundMask;
+            var holder = new GameObject("Inspection foreground");
+            holder.transform.SetParent(cameraView.transform, false);
+            overlay = holder.AddComponent<Camera>();
+            overlay.CopyFrom(cameraView);
+            overlay.cullingMask = foregroundMask;
+            overlay.useOcclusionCulling = false;
+            var data = overlay.GetUniversalAdditionalCameraData();
+            data.renderType = CameraRenderType.Overlay;            
+            stack.Add(overlay);
+        }
+
+        void LateUpdate()
+        {
+            if (overlay != null && cameraView != null)
+            {
+                overlay.nearClipPlane = cameraView.nearClipPlane;
+                overlay.farClipPlane = cameraView.farClipPlane;
+                overlay.projectionMatrix = cameraView.projectionMatrix;
+            }
+        }
+
+        void EndForeground()
+        {
+            if (overlay != null)
+            {
+                overlay.enabled = false;
+                if (baseData != null) baseData.cameraStack?.Remove(overlay);
+                if (cameraView != null && baseIncludedLayer) cameraView.cullingMask |= foregroundMask;
+                Destroy(overlay.gameObject);
+            }
+            overlay = null;
+            foreach (var pair in originalLayers)
+                if (pair.Key != null) pair.Key.layer = pair.Value;
+            originalLayers.Clear();
         }
 
         void RestoreVolume()
@@ -270,45 +241,76 @@ namespace Noir.Interaction
             if (temporary != null && temporary != previousInstance && temporary != inspectProfile) Destroy(temporary);
         }
 
-        void OnDisable() => RestoreVolume();
+        void RestorePhysics()
+        {
+            foreach (var collider in suspended)
+                if (collider != null) collider.enabled = true;
+            suspended.Clear();
+            foreach (var body in dynamicBodies)
+                if (body != null) body.isKinematic = false;
+            dynamicBodies.Clear();
+        }
+
+        void OnDisable()
+        {
+            RestoreVolume();
+            // PlayerModes.Exit clears Current before normal Deactivate/OnExit.
+            if (item != null && Modes != null && Modes.Current == this)
+            {
+                item.SetPositionAndRotation(home.position, home.rotation);
+                EndForeground();
+                RestorePhysics();
+                detector.End();
+                item = null;
+                Close();
+            }
+        }
 
         protected override void OnExit()
         {
             RestoreVolume();
             detector.End();
-            if (item == null) return;
-            Transform target = item;
-            if (taken)
+            if (item == null)
             {
-                Vector3 scale = target.localScale;
-                target.DOScale(0f, takeDuration).SetEase(Ease.InBack).OnComplete(() =>
-                {
-                    target.gameObject.SetActive(false);
-                    target.localScale = scale;
-                });
-                item = null;
+                EndForeground();
+                RestorePhysics();
                 return;
             }
-
+            Transform target = item;
             Pose start = new Pose(target.position, target.rotation);
-            // Check the return path as well. The authored resting pose is authoritative.
-            returnMotion = DOVirtual.Float(0f, 1f, moveDuration, t =>
+            Vector3 scale = target.localScale;
+            bool collected = taken;
+            float duration = collected ? takeDuration : moveDuration;
+
+            returnMotion = DOVirtual.Float(0f, 1f, duration, t =>
             {
-                if (target == null || item != target) return;
-                TryPose(new Pose(Vector3.Lerp(start.position, home.position, t),
-                    Quaternion.Slerp(start.rotation, home.rotation, t)));
-            }).SetEase(Ease.OutQuad).SetLink(target.gameObject).OnComplete(() =>
-            {
-                if (target != null) target.SetPositionAndRotation(home.position, home.rotation);
-                item = null;
-            }).OnKill(() => returnMotion = null);
+                if (target == null) return;
+                if (collected) target.localScale = Vector3.LerpUnclamped(scale, Vector3.zero, t);
+                else target.SetPositionAndRotation(Vector3.Lerp(start.position, home.position, t),
+                    Quaternion.Slerp(start.rotation, home.rotation, t));
+            }).SetEase(collected ? Ease.InBack : Ease.OutQuad).SetAutoKill(true)
+                .SetLink(target.gameObject).OnKill(() =>
+                {
+                    // Autokill runs after completion, and also handles an interrupted return.
+                    if (target != null)
+                    {
+                        if (collected) target.gameObject.SetActive(false);
+                        target.SetPositionAndRotation(home.position, home.rotation);
+                        target.localScale = scale;
+                    }
+                    EndForeground();
+                    RestorePhysics();
+                    item = null;
+                    returnMotion = null;
+                });
         }
 
         void OnDestroy()
         {
-            returnMotion?.Complete();
+            returnMotion?.Kill(true);
+            EndForeground();
             RestoreVolume();
-            if (probe != null) Destroy(probe.gameObject);
+            RestorePhysics();
         }
     }
 }
