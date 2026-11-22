@@ -38,15 +38,43 @@ namespace Noir.Player
             float rate = target.sqrMagnitude > 0.01f ? acceleration : deceleration;
             horizontalVelocity = Vector3.MoveTowards(horizontalVelocity, target, rate * Time.deltaTime);
 
-            if (controller.isGrounded && verticalVelocity < 0f)
+            bool groundedBeforeMove = controller.isGrounded;
+
+            if (groundedBeforeMove && verticalVelocity < 0f)
                 verticalVelocity = groundStick;
             else
                 verticalVelocity += gravity * Time.deltaTime;
 
             controller.Move((horizontalVelocity + Vector3.up * verticalVelocity) * Time.deltaTime);
 
-            SnapToGround();
-            wasGrounded = controller.isGrounded;
+            // Используем состояние ДО Move(), так как в Unity isGrounded иногда мигает на склонах
+            if (groundedBeforeMove && !controller.isGrounded && verticalVelocity <= 0f)
+            {
+                SnapToGround();
+            }
+        }
+
+        void SnapToGround()
+        {
+            // Немного уменьшаем радиус каста, чтобы не цепляться за вертикальные стены сбоку
+            float castRadius = controller.radius * 0.9f;
+            float half = (controller.height * 0.5f) - castRadius;
+            Vector3 origin = transform.position + controller.center;
+
+            if (Physics.SphereCast(origin, castRadius, Vector3.down, out RaycastHit hit,
+                    half + snapDistance, groundMask, QueryTriggerInteraction.Ignore))
+            {
+                // Проверяем, что поверхность не круче допустимого угла подъема
+                float slopeAngle = Vector3.Angle(hit.normal, Vector3.up);
+                if (slopeAngle <= controller.slopeLimit)
+                {
+                    float drop = hit.distance - half - controller.skinWidth;
+                    if (drop > 0.001f)
+                    {
+                        controller.Move(Vector3.down * drop);
+                    }
+                }
+            }
         }
 
         Vector3 ReadInput()
@@ -59,20 +87,7 @@ namespace Noir.Player
 
             return Vector3.ClampMagnitude(transform.right * x + transform.forward * z, 1f);
         }
-
-        void SnapToGround()
-        {
-            if (!wasGrounded || controller.isGrounded || verticalVelocity > 0f) return;
-
-            float half = controller.height * 0.5f - controller.radius;
-            Vector3 origin = transform.position + controller.center;
-
-            if (Physics.SphereCast(origin, controller.radius, Vector3.down, out RaycastHit hit,
-                    half + snapDistance, groundMask, QueryTriggerInteraction.Ignore))
-            {
-                controller.Move(Vector3.down * (hit.distance - half + controller.skinWidth));
-            }
-        }
+        
         public void Warp(Vector3 pos)
         {
             controller.enabled = false;

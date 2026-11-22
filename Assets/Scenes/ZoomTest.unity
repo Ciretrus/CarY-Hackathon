@@ -2497,6 +2497,18 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 7936404193445968539}
     - target: {fileID: 282190397247831550, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
+      propertyPath: maxDistance
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 282190397247831550, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
+      propertyPath: minDistance
+      value: 0.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 282190397247831550, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
+      propertyPath: distanceStep
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 282190397247831550, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
       propertyPath: closeOnEscape
       value: 0
       objectReference: {fileID: 0}
@@ -2522,6 +2534,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1675547571807318801, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
       propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2501458448070208388, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
+      propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2549592499000336022, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
