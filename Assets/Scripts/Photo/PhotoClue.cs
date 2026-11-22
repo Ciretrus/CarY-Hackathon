@@ -21,8 +21,16 @@ namespace Noir.Photo
         private void OnDisable() => _all.Remove(this);
 
         public static PhotoClue FindInShot(
-    Camera camera, Rect viewport, EvidenceRegistry registry, LayerMask occluders)
+            Camera camera, Rect viewport, EvidenceRegistry registry, LayerMask occluders)
         {
+            return FindInShot(camera, viewport, registry, occluders, out _);
+        }
+
+        public static PhotoClue FindInShot(
+            Camera camera, Rect viewport, EvidenceRegistry registry, LayerMask occluders,
+            out bool foundKnownClue)
+        {
+            foundKnownClue = false;
             if (camera == null || registry == null)
             {
                 Debug.LogError($"[PhotoClue] Не назначена ссылка. Camera={camera}, Registry={registry}");
@@ -44,11 +52,8 @@ namespace Noir.Photo
                     continue;
                 }
 
-                if (registry.IsFound(clue._evidenceId))
-                {
-                    Debug.Log($"{label}: улика уже найдена.", clue);
-                    continue;
-                }
+                var evidence = registry.GetEvidence(clue._evidenceId);
+                if (evidence == null) continue;
 
                 Vector3 target = clue.transform.position;
                 Vector3 point = camera.WorldToViewportPoint(target);
@@ -80,6 +85,12 @@ namespace Noir.Photo
                     }
                 }
 
+                if (evidence.IsFound)
+                {
+                    foundKnownClue = true;
+                    continue;
+                }
+
                 float offset = Vector2.Distance(point, viewport.center);
                 if (offset < bestOffset)
                 {
@@ -90,7 +101,7 @@ namespace Noir.Photo
 
             if (best != null)
                 Debug.Log($"[PhotoClue] Выбрана улика '{best.EvidenceId}'.", best);
-            else
+            else if (!foundKnownClue)
                 Debug.Log("[PhotoClue] Подходящей улики в кадре нет.");
 
             return best;

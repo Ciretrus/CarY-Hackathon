@@ -16,6 +16,10 @@ namespace Noir.Photo
         [SerializeField] private EvidenceRegistry _registry;
         [SerializeField] private AudioSource _audio;
         [SerializeField] private AudioClip _shutterSound;
+        [SerializeField, HideInInspector] private AudioClip _noEvidenceSound;
+        [SerializeField] private AudioClip[] _noEvidenceSounds;
+        [SerializeField, HideInInspector] private AudioClip _alreadyInDossierSound;
+        [SerializeField] private AudioClip[] _alreadyInDossierSounds;
         [SerializeField] private AudioClip _zoomSound;
         [SerializeField, Range(0f, 1f)] private float _zoomVolume = 0.55f;
         [SerializeField] private LayerMask _occluders = ~0;
@@ -85,9 +89,9 @@ namespace Noir.Photo
             _state = State.Reviewing;
 
             var photo = _capture.Capture();
-            var clue = PhotoClue.FindInShot(_capture.Camera, _capture.SquareViewport, _registry, _occluders);
+            var clue = PhotoClue.FindInShot(_capture.Camera, _capture.SquareViewport, _registry, _occluders, out bool foundKnownClue);
 
-            if (_shutterSound != null)
+            if (_shutterSound != null && _audio != null)
                 _audio.PlayOneShot(_shutterSound);
 
             bool isEvidence = clue != null && _registry.Collect(clue.EvidenceId, photo);
@@ -98,12 +102,37 @@ namespace Noir.Photo
                     StartCoroutine(PlayPhotoLine(clue.FoundLine, delay));
             }
 
+            if (!isEvidence && _audio != null && _registry != null)
+            {
+                AudioClip resultSound = foundKnownClue
+                    ? PickClip(_alreadyInDossierSounds, _alreadyInDossierSound)
+                    : PickClip(_noEvidenceSounds, _noEvidenceSound);
+                if (resultSound != null)
+                    _audio.PlayOneShot(resultSound);
+            }
+
             _hud.Shot(photo).OnComplete(() =>
             {
                 if (!isEvidence)
                     Destroy(photo);
                 _state = State.Shooting;
             });
+        }
+
+        private static AudioClip PickClip(AudioClip[] clips, AudioClip previousClip)
+        {
+            AudioClip selected = previousClip;
+            int count = 0;
+            if (clips == null) return selected;
+
+            foreach (AudioClip clip in clips)
+            {
+                if (clip == null) continue;
+                count++;
+                if (Random.Range(0, count) == 0)
+                    selected = clip;
+            }
+            return selected;
         }
 
         private IEnumerator PlayPhotoLine(AudioClip line, float delay)

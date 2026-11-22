@@ -861,10 +861,6 @@ MonoBehaviour:
   deceleration: 25
   gravity: -20
   groundStick: -2
-  snapDistance: 0.5
-  groundMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
 --- !u!114 &3543039660877810091
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -904,10 +900,13 @@ MonoBehaviour:
   moveDuration: 0.25
   takeDuration: 0.2
   inspectCamera: {fileID: 0}
+  holdDistance: 0.38
   minDistance: 0.5
   maxDistance: 2.5
   distanceStep: 0.15
   zoomSmoothTime: 0.08
+  globalVolume: {fileID: 0}
+  inspectProfile: {fileID: 0}
 --- !u!114 &3156774223550551620
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1007,6 +1006,10 @@ MonoBehaviour:
   _registry: {fileID: 0}
   _audio: {fileID: 2721113686604017671}
   _shutterSound: {fileID: 8300000, guid: b550b36d9c84fb94dacb050139130766, type: 3}
+  _noEvidenceSound: {fileID: 0}
+  _noEvidenceSounds: []
+  _alreadyInDossierSound: {fileID: 0}
+  _alreadyInDossierSounds: []
   _zoomSound: {fileID: 8300000, guid: f7e5d00702714ec4baa1d8bc88f6768f, type: 3}
   _zoomVolume: 0.55
   _occluders:
@@ -2395,8 +2398,8 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 3283207374293209563}
   - {fileID: 3715151033718482456}
+  - {fileID: 3283207374293209563}
   m_Father: {fileID: 9220902225874942604}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}

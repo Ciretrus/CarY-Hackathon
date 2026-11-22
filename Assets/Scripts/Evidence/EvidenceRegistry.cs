@@ -34,6 +34,7 @@ namespace Noir.Interaction
                 }
             }
         }
+
         private void Awake()
         {
             _all = GetComponentsInChildren<BoardEvidence>(true);
