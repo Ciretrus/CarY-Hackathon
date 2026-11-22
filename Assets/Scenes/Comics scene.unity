@@ -1299,35 +1299,35 @@ MonoBehaviour:
   - pageRect: {fileID: 1973231993}
     frames:
     - canvasGroup: {fileID: 2114113028}
-      audioClip: {fileID: 8300000, guid: 79c7b6b1ee026164783ea1283d9a2134, type: 3}
+      audioClip: {fileID: 8300000, guid: 1bf8ed9fdfeda39409a074d23a2a321e, type: 3}
     - canvasGroup: {fileID: 1151339407}
-      audioClip: {fileID: 8300000, guid: 4335e7a7053c2b64dae4e147ba6e58b2, type: 3}
+      audioClip: {fileID: 8300000, guid: 12f360e41846f7f448fa67f816c47cdf, type: 3}
     - canvasGroup: {fileID: 926818468}
-      audioClip: {fileID: 8300000, guid: 8f3b2e084ba8dd844b5ad9d3965b1259, type: 3}
+      audioClip: {fileID: 8300000, guid: 88656eee52a74d244945b01b9dd5c113, type: 3}
     - canvasGroup: {fileID: 456266960}
-      audioClip: {fileID: 8300000, guid: 7b359814f60da4c4f86c90fb60f35fed, type: 3}
+      audioClip: {fileID: 8300000, guid: a04a1d08b6b89bc40883eeb2bd347fef, type: 3}
   - pageRect: {fileID: 716309835}
     frames:
     - canvasGroup: {fileID: 518889486}
-      audioClip: {fileID: 8300000, guid: 5c8ae06c22de75a428a012bbab8ab89f, type: 3}
+      audioClip: {fileID: 8300000, guid: d30416bba0ede204d8d604527a284406, type: 3}
     - canvasGroup: {fileID: 1272770447}
-      audioClip: {fileID: 8300000, guid: c2f262c9cb4ee8945870ac0f02cf2ebe, type: 3}
+      audioClip: {fileID: 8300000, guid: 4fd778e3a10d9c04a87375901b38ec6c, type: 3}
   - pageRect: {fileID: 1700437350}
     frames:
     - canvasGroup: {fileID: 453377496}
-      audioClip: {fileID: 8300000, guid: a4c9136c12e5b914b94c2dfd1bf9fb3b, type: 3}
+      audioClip: {fileID: 8300000, guid: fde544359097bf449966db7be1534348, type: 3}
     - canvasGroup: {fileID: 1114825434}
-      audioClip: {fileID: 8300000, guid: 5fce2185d42a85c46b463aa9336daad9, type: 3}
+      audioClip: {fileID: 8300000, guid: cdbc3b0178ebd03489b8c16c70995fc5, type: 3}
     - canvasGroup: {fileID: 1834511879}
-      audioClip: {fileID: 8300000, guid: 0aac72b82a70cac489b11b43a49fa72f, type: 3}
+      audioClip: {fileID: 8300000, guid: 823fab18b597a4141896184fd0a26697, type: 3}
     - canvasGroup: {fileID: 1425365635}
-      audioClip: {fileID: 8300000, guid: 2d6fc531e566d7e4d9be3b5d5f1adfa8, type: 3}
+      audioClip: {fileID: 8300000, guid: 47b759907b386c040ba4a2ae3bf7d17b, type: 3}
   - pageRect: {fileID: 1915052394}
     frames:
     - canvasGroup: {fileID: 455513204}
-      audioClip: {fileID: 8300000, guid: 56a7317b8a379be47a08da7df089c611, type: 3}
+      audioClip: {fileID: 8300000, guid: 7ccd4e42f16407c4ebcc5f0c9b831512, type: 3}
     - canvasGroup: {fileID: 281360930}
-      audioClip: {fileID: 8300000, guid: 0784387a678dbe24696cc2f6277d2d95, type: 3}
+      audioClip: {fileID: 8300000, guid: 5720788460e3f10408bb373bc127b872, type: 3}
   audioSource: {fileID: 1321772065}
   fadeDuration: 0.4
   fadeEase: 6
