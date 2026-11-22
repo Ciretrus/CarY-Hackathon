@@ -18,6 +18,7 @@ namespace Noir.Interaction
         [SerializeField] private float _stringWidth = 0.004f;
         [SerializeField] private int _segments = 12;
         [SerializeField] private float _sag = 0.05f;
+        [SerializeField] private float _stringOffset = 0.02f;
 
         [Header("Logic")]
         [SerializeField] private EvidenceRegistry _registry;
@@ -253,7 +254,8 @@ namespace Noir.Interaction
             }
 
             Vector3 anchor = _chain.Count > 0 ? _chain[_chain.Count - 1].Point : _suspectPoint;
-            Vector3 cursor = CursorPoint(anchor);
+            anchor = WithOffset(anchor);
+            Vector3 cursor = CursorPoint(anchor); // курсор автоматически попадёт в ту же смещённую плоскость
             if (!_liveRope.Active) _liveRope.Begin(anchor);
             _liveRope.SetEndpoints(anchor, cursor);
         }
@@ -303,6 +305,8 @@ namespace Noir.Interaction
 
         void SetLine(LineRenderer lr, Vector3 a, Vector3 b)
         {
+            a = WithOffset(a);
+            b = WithOffset(b);
             Vector3 mid = (a + b) * 0.5f + Vector3.down * _sag;
             for (int i = 0; i < _segments; i++)
             {
@@ -316,5 +320,12 @@ namespace Noir.Interaction
         {
             if (_audio != null && clip != null) _audio.PlayOneShot(clip);
         }
+
+        Vector3 WithOffset(Vector3 point)
+        {
+            var cam = Camera.main;
+            return cam != null ? point - cam.transform.forward * _stringOffset : point;
+        }
+
     }
 }
