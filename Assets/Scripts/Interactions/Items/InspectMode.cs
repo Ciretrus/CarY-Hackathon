@@ -37,6 +37,7 @@ namespace Noir.Interaction
         bool baseIncludedLayer;
         readonly Dictionary<GameObject, int> originalLayers = new Dictionary<GameObject, int>();
         Tween returnMotion;
+        public bool IsReturning => returnMotion.IsActive();
         float distance, requested, velocity, elapsed;
         bool taken, swapped;
         VolumeProfile previousShared, previousInstance;

@@ -35,6 +35,16 @@ public sealed class MasterVolumeSettings : MonoBehaviour
     private int m_Percent = 100;
     private bool m_Ready;
 
+    private GameObject m_PausePanel;
+    private Noir.Player.PlayerLook m_PlayerLook;
+    public bool IsOpen => m_Panel != null && m_Panel.activeSelf;
+
+    public void ConfigurePause(GameObject panel, Noir.Player.PlayerLook look)
+    {
+        m_PausePanel = panel;
+        m_PlayerLook = look;
+    }
+
     private void Start()
     {
         m_Open = GetComponent<Button>();
@@ -57,20 +67,26 @@ public sealed class MasterVolumeSettings : MonoBehaviour
         if (m_Moving || (m_Panel != null && m_Panel.activeSelf)) return;
         Canvas canvas = GetComponentInParent<Canvas>().rootCanvas;
         if (m_Panel == null) BuildPanel(canvas.transform);
-        foreach (Selectable control in canvas.GetComponentsInChildren<Selectable>())
+        foreach (Selectable control in (m_PausePanel != null ? m_PausePanel : canvas.gameObject).GetComponentsInChildren<Selectable>())
         {
             if (!control.interactable || control.transform.IsChildOf(m_Panel.transform)) continue;
             m_Blocked.Add(control);
             control.interactable = false;
         }
-        foreach (Transform child in canvas.transform)
+        if (m_PausePanel != null)
+        {
+            var group = m_PausePanel.GetComponent<CanvasGroup>();
+            if (group == null) group = m_PausePanel.AddComponent<CanvasGroup>();
+            m_MenuAlphas.Add(group, group.alpha);
+        }
+        else foreach (Transform child in canvas.transform)
         {
             if (child.gameObject == m_Panel || !child.gameObject.activeSelf) continue;
             var group = child.GetComponent<CanvasGroup>();
             if (group == null) group = child.gameObject.AddComponent<CanvasGroup>();
             m_MenuAlphas.Add(group, group.alpha);
         }
-        m_HasCameraPose = m_MenuCamera != null && m_SettingsTarget != null;
+        m_HasCameraPose = m_PausePanel == null && m_MenuCamera != null && m_SettingsTarget != null;
         if (m_HasCameraPose)
             m_Home = new Pose(m_MenuCamera.transform.position, m_MenuCamera.transform.rotation);
         m_PanelGroup.alpha = 0f;
@@ -79,7 +95,7 @@ public sealed class MasterVolumeSettings : MonoBehaviour
         m_Panel.transform.SetAsLastSibling();
         m_Slider.SetValueWithoutNotify(m_Percent);
         RefreshLabel();
-        float sensitivity = PlayerPrefs.GetFloat(SensitivityKey, 0.1f);
+        float sensitivity = m_PlayerLook != null ? m_PlayerLook.Sensitivity : PlayerPrefs.GetFloat(SensitivityKey, 0.1f);
         m_SensitivitySlider.onValueChanged.RemoveListener(ChangeSensitivity);
         m_SensitivitySlider.minValue = Mathf.Min(0.02f, sensitivity);
         m_SensitivitySlider.maxValue = Mathf.Max(0.50f, sensitivity);
@@ -102,7 +118,7 @@ public sealed class MasterVolumeSettings : MonoBehaviour
         else m_SensitivitySlider.Select();
     }
 
-    private void Close()
+    public void Close()
     {
         if (m_Moving) return;
         PlayerPrefs.Save();
@@ -220,7 +236,8 @@ public sealed class MasterVolumeSettings : MonoBehaviour
     {
         float sensitivity = Mathf.Round(value * 100f) / 100f;
         m_SensitivitySlider.SetValueWithoutNotify(sensitivity);
-        PlayerPrefs.SetFloat(SensitivityKey, sensitivity);
+        if (m_PlayerLook != null) m_PlayerLook.Sensitivity = sensitivity;
+        else PlayerPrefs.SetFloat(SensitivityKey, sensitivity);
         ShowSensitivity(sensitivity);
     }
 

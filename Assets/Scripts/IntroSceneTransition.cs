@@ -13,6 +13,7 @@ public sealed class IntroSceneTransition : MonoBehaviour
     private Image m_Curtain;
     private RectTransform m_LoadingIcon;
     private bool m_Loading;
+        public bool IsTransitioning => m_Loading && m_Curtain != null && m_Curtain.enabled;
 
     public static IntroSceneTransition Instance
     {

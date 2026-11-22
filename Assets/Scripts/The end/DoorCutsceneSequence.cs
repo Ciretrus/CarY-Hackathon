@@ -44,6 +44,7 @@ public class DoorCutsceneSequence : MonoBehaviour
     public event Action OnCutsceneFinishedAction;
 
     private Sequence _cutsceneSequence;
+    public bool IsPlaying => _cutsceneSequence.IsActive();
 
     private void Awake()
     {
