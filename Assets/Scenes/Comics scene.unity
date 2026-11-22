@@ -1275,6 +1275,7 @@ GameObject:
   - component: {fileID: 1321772064}
   - component: {fileID: 1321772063}
   - component: {fileID: 1321772065}
+  - component: {fileID: 195830112233}
   m_Layer: 0
   m_Name: ComicsController
   m_TagString: Untagged
@@ -1337,7 +1338,19 @@ MonoBehaviour:
   pageSlideEase: 17
   onComicFinished:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 195830112233}
+        m_TargetAssemblyTypeName: IntroSceneLink, Assembly-CSharp
+        m_MethodName: LoadNextScene
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument:
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!4 &1321772064
 Transform:
   m_ObjectHideFlags: 0
@@ -2165,6 +2178,23 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!114 &195830112233
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1321772062}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 090f90a3f935464c82f1125a4cb324ce, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::IntroSceneLink
+  m_NextScene: GameplayScene
+  m_IsMenu: 0
+  m_MenuMusic: {fileID: 0}
+  m_MusicVolume: 0.35
+  m_FadeSeconds: 1.2
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

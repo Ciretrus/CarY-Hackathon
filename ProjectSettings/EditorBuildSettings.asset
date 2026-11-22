@@ -6,6 +6,15 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/Main Menu.unity
+    guid: 0275bf438630982418224a7264df8f0f
+  - enabled: 1
+    path: Assets/Scenes/Comics scene.unity
+    guid: 99ad443543f43b840b647b280cc2f4ed
+  - enabled: 1
+    path: Assets/Scenes/GameplayScene.unity
+    guid: d5642db06c8c82941ba50bd1cec6446e
+  - enabled: 1
     path: Assets/Scenes/detective test.unity
     guid: 99c9720ab356a0642a771bea13969a05
   m_configObjects:
