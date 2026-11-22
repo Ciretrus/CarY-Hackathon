@@ -258,17 +258,20 @@ namespace Noir.Interaction
             _liveRope.SetEndpoints(anchor, cursor);
         }
 
-        Vector3 CursorPoint(Vector3 fallback)
+        Vector3 CursorPoint(Vector3 anchor)
         {
             var mouse = Mouse.current;
             var cam = Camera.main;
-            if (mouse == null || cam == null) return fallback;
+            if (mouse == null || cam == null) return anchor;
+
             var ray = cam.ScreenPointToRay(mouse.position.ReadValue());
-            Vector3 n = transform.forward;
+            Vector3 n = cam.transform.forward;
             float denom = Vector3.Dot(n, ray.direction);
-            if (Mathf.Abs(denom) < 1e-4f) return fallback;
-            float t = Vector3.Dot(n, transform.position - ray.origin) / denom;
-            if (t <= 0f) return fallback;
+            if (Mathf.Abs(denom) < 1e-4f) return anchor;
+
+            float t = Vector3.Dot(n, anchor - ray.origin) / denom;
+            if (t <= 0f) return anchor;
+
             return ray.GetPoint(t);
         }
 
