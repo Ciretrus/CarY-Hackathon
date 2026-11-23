@@ -2859,7 +2859,7 @@ MonoBehaviour:
   playerLook: {fileID: 1593876214}
   playerMovement: {fileID: 2549592498801537729}
   lookTarget: {fileID: 261620776}
-  turnSpeed: 180
+  turnSpeed: 400
   turnEase: 7
   audioSource: {fileID: 7936404193445968551}
   voicePhraseClip: {fileID: 8300000, guid: b657656f2c433594bbd802acff53ae12, type: 3}
@@ -16380,8 +16380,8 @@ MonoBehaviour:
   _audio: {fileID: 7936404193445968551}
   _pinSound: {fileID: 0}
   _failSound: {fileID: 0}
-  _missingLine: {fileID: 0}
-  _wrongLine: {fileID: 0}
+  _missingLine: {fileID: 8300000, guid: ded572d8a31ccf646823389e4aed5f3b, type: 3}
+  _wrongLine: {fileID: 8300000, guid: 300e652aa54dfc643b0180a1c2d10d47, type: 3}
   onMissing:
     m_PersistentCalls:
       m_Calls: []
