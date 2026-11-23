@@ -17268,8 +17268,20 @@ PrefabInstance:
       value: 0.391
       objectReference: {fileID: 0}
     - target: {fileID: 1259265935877096753, guid: 28de45f9cc9b44d43b9fd93f30ce5539, type: 3}
+      propertyPath: m_FadeMode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1259265935877096753, guid: 28de45f9cc9b44d43b9fd93f30ce5539, type: 3}
       propertyPath: m_LODs.Array.data[0].screenRelativeHeight
       value: 0.040975016
+      objectReference: {fileID: 0}
+    - target: {fileID: 1259265935877096753, guid: 28de45f9cc9b44d43b9fd93f30ce5539, type: 3}
+      propertyPath: m_LODs.Array.data[1].renderers.Array.data[0].renderer
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 1259265935877096753, guid: 28de45f9cc9b44d43b9fd93f30ce5539, type: 3}
+      propertyPath: m_LODs.Array.data[2].renderers.Array.data[0].renderer
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 1392861388720824655, guid: 28de45f9cc9b44d43b9fd93f30ce5539, type: 3}
       propertyPath: m_Size.z
@@ -17721,9 +17733,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 8810968894532225481, guid: 28de45f9cc9b44d43b9fd93f30ce5539, type: 3}
+    - {fileID: 1259265935877096753, guid: 28de45f9cc9b44d43b9fd93f30ce5539, type: 3}
     m_RemovedGameObjects:
     - {fileID: 5052602404792717574, guid: 28de45f9cc9b44d43b9fd93f30ce5539, type: 3}
     - {fileID: 5219065238204958365, guid: 28de45f9cc9b44d43b9fd93f30ce5539, type: 3}
+    - {fileID: 6817048892363490991, guid: 28de45f9cc9b44d43b9fd93f30ce5539, type: 3}
+    - {fileID: 3063090813883222221, guid: 28de45f9cc9b44d43b9fd93f30ce5539, type: 3}
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 4680525549825078033, guid: 28de45f9cc9b44d43b9fd93f30ce5539, type: 3}
       insertIndex: -1
