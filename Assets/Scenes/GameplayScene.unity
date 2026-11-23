@@ -2487,25 +2487,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DoorCutsceneSequence
   doorPivot: {fileID: 130595333}
-  openDoorLocalEuler: {x: 0, y: -70, z: 0}
-  doorOpenSound: {fileID: 8300000, guid: e780c5e6a8de10147be4a8f08806b782, type: 3}
+  openDoorLocalEuler: {x: -90, y: -70, z: 0}
+  doorOpenSound: {fileID: 8300000, guid: 9d563a6947eccf647ae3a06b6c819eb4, type: 3}
   silhouetteObject: {fileID: 261620775}
   playerLook: {fileID: 1593876214}
   playerMovement: {fileID: 2549592498801537729}
   turnDuration: 0.3
   turnYAngle: 180
   audioSource: {fileID: 7936404193445968551}
-  voicePhraseClip: {fileID: 8300000, guid: 8f3b2e084ba8dd844b5ad9d3965b1259, type: 3}
-  delayBeforePhrase: 0.15
-  delayAfterPhrase: 0.2
+  voicePhraseClip: {fileID: 8300000, guid: b657656f2c433594bbd802acff53ae12, type: 3}
+  delayBeforePhrase: 0.5
+  delayAfterPhrase: 0.05
   lightningLights:
   - {fileID: 1699650570}
   - {fileID: 1090142726}
-  lightningSound: {fileID: 8300000, guid: 614835463c206e14bbeff274c3519e1e, type: 3}
+  lightningSound: {fileID: 8300000, guid: 37420733577ec4542a353176415078be, type: 3}
   lightningPeakIntensity: 20
   lightningDuration: 0.35
-  blackScreenCanvasGroup: {fileID: 0}
-  blackScreenSound: {fileID: 0}
+  blackScreenCanvasGroup: {fileID: 674118939}
+  blackScreenSound: {fileID: 8300000, guid: 5a7b0041a99df99499257b2fef7db7ea, type: 3}
   fadeToBlackDuration: 0.15
   onCutsceneFinished:
     m_PersistentCalls:
@@ -4003,6 +4003,30 @@ PrefabInstance:
       propertyPath: _foundSound
       value: 
       objectReference: {fileID: 8300000, guid: 60a694684df74784e8ef51ce3bf19eb3, type: 3}
+    - target: {fileID: 8403799410278658479, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
+      propertyPath: m_Type
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8403799410278658479, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 953088f45b95a674180cf0b7a4182411, type: 3}
+    - target: {fileID: 8403799410278658479, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
+      propertyPath: m_Color.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8403799410278658479, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
+      propertyPath: m_Color.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8403799410278658479, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
+      propertyPath: m_Color.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8403799410278658479, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
+      propertyPath: m_Color.r
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8663357575710100372, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
@@ -7632,6 +7656,11 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.9691242, y: 0.89256763, z: 0.84688187}
   m_Center: {x: -0.018257797, y: 0.44733667, z: -0.06993078}
+--- !u!225 &674118939 stripped
+CanvasGroup:
+  m_CorrespondingSourceObject: {fileID: 6156512921096452767, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
+  m_PrefabInstance: {fileID: 368749655}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &687428852
 GameObject:
   m_ObjectHideFlags: 0
