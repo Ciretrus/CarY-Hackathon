@@ -2870,7 +2870,7 @@ MonoBehaviour:
   - {fileID: 1090142726}
   lightningSound: {fileID: 8300000, guid: 37420733577ec4542a353176415078be, type: 3}
   lightningPeakIntensity: 20
-  lightningDuration: 0.35
+  lightningDuration: 3
   blackScreenCanvasGroup: {fileID: 167800707}
   thankYouPanel: {fileID: 350844009}
   blackScreenSound: {fileID: 8300000, guid: 5a7b0041a99df99499257b2fef7db7ea, type: 3}
@@ -24951,7 +24951,7 @@ Transform:
   m_GameObject: {fileID: 1904074503}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0.7071068, z: -0.7071068, w: 0}
-  m_LocalPosition: {x: -0.00045138, y: -0.011385594, z: 0.0009247279}
+  m_LocalPosition: {x: -0.00001, y: -0.011385594, z: 0.00005}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
