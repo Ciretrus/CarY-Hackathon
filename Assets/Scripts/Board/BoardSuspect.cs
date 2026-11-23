@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -11,42 +12,56 @@ namespace Noir.Interaction
         [SerializeField] private AudioClip _solvedLine;
         [SerializeField] private UnityEvent onSolved = new();
 
-        [SerializeField] private BoardHighlight _highlight;
+        [SerializeField] private SpriteRenderer _glow;
+        [SerializeField] private float _hoverAlpha = 0.3f;
+        [SerializeField] private float _selectedAlpha = 1f;
+        [SerializeField] private float _duration = 0.15f;
+        [SerializeField] private Ease _ease = Ease.OutQuad;
 
+        private Tween _tween;
+        private bool _isHovered, _isSelected;
+
+        public AudioClip SolvedLine => _solvedLine;
         public string SuspectName => _suspectName;
         public string[] RequiredIds => _requiredIds;
 
-        public override void HoverEnter()
-        {
-            base.HoverEnter();
-            if (_highlight)
-                _highlight.SetHovered(true);
-        }
+        void OnEnable() { _isHovered = false; _isSelected = false; SetAlpha(0f); }
+        void OnDisable() { _tween?.Kill(); _isHovered = false; _isSelected = false; SetAlpha(0f); }
 
-        public override void HoverExit()
-        {
-            base.HoverExit();
-            if (_highlight)
-                _highlight.SetHovered(false);
-        }
+        public override void HoverEnter() { base.HoverEnter(); _isHovered = true; Refresh(); }
+        public override void HoverExit() { base.HoverExit(); _isHovered = false; Refresh(); }
 
         public void SetSelected(bool value)
         {
-            if (_highlight)
-                _highlight.SetSelected(value);
+            if (_isSelected == value) return;
+            _isSelected = value;
+            Refresh();
         }
 
         public void TriggerSolved(AudioSource audio)
         {
-            if (audio != null && _solvedLine != null)
-                audio.PlayOneShot(_solvedLine);
+            if (audio != null && _solvedLine != null) audio.PlayOneShot(_solvedLine);
             onSolved?.Invoke();
+        }
+
+        void Refresh()
+        {
+            _tween?.Kill();
+            float target = _isSelected ? _selectedAlpha : _isHovered ? _hoverAlpha : 0f;
+            _tween = _glow.DOFade(target, _duration).SetEase(_ease).SetLink(gameObject);
+        }
+
+        void SetAlpha(float a)
+        {
+            if (_glow == null) return;
+            var c = _glow.color;
+            c.a = a;
+            _glow.color = c;
         }
 
         void OnValidate()
         {
-            if (_requiredIds == null)
-                return;
+            if (_requiredIds == null) return;
             if (_requiredIds.Length != 5)
                 Debug.LogWarning($"Suspect '{_suspectName}': нужно 5 id, сейчас {_requiredIds.Length}", this);
 

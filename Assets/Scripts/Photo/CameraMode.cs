@@ -1,4 +1,3 @@
-using System.Collections;
 using DG.Tweening;
 using Noir.Interaction;
 using Noir.Player;
@@ -84,8 +83,11 @@ namespace Noir.Photo
             _hud.ResetAll();
         }
 
+        private AudioSource _photoVoice;
+
         private void Shoot()
         {
+            if (_photoVoice != null) _photoVoice.Stop();
             _state = State.Reviewing;
 
             var photo = _capture.Capture();
@@ -99,7 +101,7 @@ namespace Noir.Photo
             {
                 float delay = _detector != null ? _detector.PlayFoundCue() : 0f;
                 if (clue.FoundLine != null && _audio != null)
-                    StartCoroutine(PlayPhotoLine(clue.FoundLine, delay));
+                    PlayPhotoLine(clue.FoundLine, delay);
             }
 
             if (!isEvidence && _audio != null && _registry != null)
@@ -135,12 +137,27 @@ namespace Noir.Photo
             return selected;
         }
 
-        private IEnumerator PlayPhotoLine(AudioClip line, float delay)
+        private void PlayPhotoLine(AudioClip line, float delay)
         {
-            if (delay > 0f)
-                yield return new WaitForSecondsRealtime(delay);
-            if (_audio != null && _audio.isActiveAndEnabled)
-                _audio.PlayOneShot(line);
+            if (_photoVoice == null)
+            {
+                _photoVoice = _audio.gameObject.AddComponent<AudioSource>();
+                _photoVoice.playOnAwake = false;
+            }
+
+            _photoVoice.outputAudioMixerGroup = _audio.outputAudioMixerGroup;
+            _photoVoice.volume = _audio.volume;
+            _photoVoice.pitch = _audio.pitch;
+            _photoVoice.spatialBlend = _audio.spatialBlend;
+            _photoVoice.mute = _audio.mute;
+            _photoVoice.clip = line;
+            if (delay > 0f) _photoVoice.PlayDelayed(delay);
+            else _photoVoice.Play();
+        }
+
+        private void OnDestroy()
+        {
+            if (_photoVoice != null) Destroy(_photoVoice);
         }
     }
 }
