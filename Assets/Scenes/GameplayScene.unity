@@ -3913,7 +3913,8 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 455526372201681495, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
       propertyPath: m_text
-      value: Press E to collect evidence
+      value: "\u0417\u0430\u0431\u0440\u0430\u0442\u044C \u0443\u043B\u0438\u043A\u0443
+        (\u0415)"
       objectReference: {fileID: 0}
     - target: {fileID: 455526372201681495, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
       propertyPath: m_margin.w
@@ -3926,7 +3927,7 @@ PrefabInstance:
     - target: {fileID: 455526372201681495, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
       propertyPath: m_fontAsset
       value: 
-      objectReference: {fileID: 11400000, guid: d29c79323d752a44baecbe3e78488808, type: 2}
+      objectReference: {fileID: 11400000, guid: 4e92f1719e486364bb5c4b39cf46aef7, type: 2}
     - target: {fileID: 455526372201681495, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
       propertyPath: m_fontColor.b
       value: 1
@@ -3942,7 +3943,7 @@ PrefabInstance:
     - target: {fileID: 455526372201681495, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
       propertyPath: m_sharedMaterial
       value: 
-      objectReference: {fileID: -2192980786481074113, guid: d29c79323d752a44baecbe3e78488808, type: 2}
+      objectReference: {fileID: 8193108169171671612, guid: 4e92f1719e486364bb5c4b39cf46aef7, type: 2}
     - target: {fileID: 455526372201681495, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
       propertyPath: m_fontColor32.rgba
       value: 4294967295
@@ -15893,7 +15894,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: "\u041F\u0440\u0438\u043D\u044F\u0442\u044C (E)"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 4e92f1719e486364bb5c4b39cf46aef7, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -15960,7 +15961,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &1297413375
