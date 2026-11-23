@@ -2101,7 +2101,7 @@ MonoBehaviour:
   m_IsMenu: 1
   m_MenuMusic: {fileID: 8300000, guid: 5b3081e927be48a468acb2bde28397ae, type: 3}
   m_MusicMixerGroup: {fileID: -4822723771065041852, guid: 2caa0972536fc8749a52827da3cb6cd6, type: 2}
-  m_MusicVolume: 0.35
+  m_MusicVolume: 0.2
   m_FadeSeconds: 0.65
   m_MenuCamera: {fileID: 1418302526}
   m_FlightTarget: {fileID: 195830112241}

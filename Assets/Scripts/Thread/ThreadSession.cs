@@ -1,3 +1,5 @@
+using System.Collections;
+using Noir.Player;
 using System.Collections.Generic;
 using DG.Tweening;
 using UnityEngine;
@@ -23,6 +25,9 @@ namespace Noir.Interaction
         [Header("Logic")]
         [SerializeField] private EvidenceRegistry _registry;
         [SerializeField] private int _requiredClues = 5;
+
+        [SerializeField] private DoorCutsceneSequence _ending;
+        private bool _endingStarted;
 
         [Header("Feedback")]
         [SerializeField] private AudioSource _audio;
@@ -230,12 +235,43 @@ namespace Noir.Interaction
             foreach (var pin in _chain) placed.Add(pin.Evidence.ID);
 
             if (placed.SetEquals(new HashSet<string>(required)))
-                _suspect.TriggerSolved(_audio);
+                BeginEnding();
             else
             {
                 onWrong?.Invoke();
                 Play(_wrongLine);
             }
+        }
+
+        private void BeginEnding()
+        {
+            if (_endingStarted) return;
+            if (_ending == null) _ending = FindFirstObjectByType<DoorCutsceneSequence>();
+            var modes = FindFirstObjectByType<PlayerModes>();
+            if (_ending == null || modes == null || !(modes.Current is BoardMode board))
+            {
+                Debug.LogError("ThreadSession: проверь Ending и активный режим доски.", this);
+                return;
+            }
+
+            _endingStarted = true;
+            board.enabled = false; // Keep Current until the line finishes, blocking other modes and Esc.
+            StartCoroutine(FinishEnding(modes, _suspect));
+        }
+
+        private IEnumerator FinishEnding(PlayerModes modes, BoardSuspect suspect)
+        {
+            AudioClip line = suspect.SolvedLine;
+            if (line != null && _audio != null && _audio.isActiveAndEnabled)
+            {
+                _audio.PlayOneShot(line);
+                float speed = Mathf.Max(0.01f, Mathf.Abs(_audio.pitch));
+                yield return new WaitForSecondsRealtime(line.length / speed);
+            }
+
+            modes.Exit();
+            suspect.TriggerSolved(null); // Notify existing listeners without replaying the line.
+            _ending.PlayCutscene();
         }
 
         void LateUpdate()
