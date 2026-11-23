@@ -198,8 +198,8 @@ namespace Noir.Player
             _savedBlendTime = blend.Time;
             blend.Time = 0f;
             _brain.DefaultBlend = blend;
-            _movement.Warp(spawn.position);
             Close();
+            _movement.Warp(spawn);
         }
 
         private void OnFlashbackDone()

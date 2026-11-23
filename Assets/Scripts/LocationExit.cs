@@ -93,7 +93,7 @@ namespace Noir.Interaction
             blend.Time = 0f;
             _brain.DefaultBlend = blend;
 
-            _movement.Warp(_officeSpawn.position);
+            _movement.Warp(_officeSpawn);
         }
 
         void OnFlashbackDone()

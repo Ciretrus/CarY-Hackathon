@@ -1,3 +1,4 @@
+using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -13,6 +14,7 @@ namespace Noir.Player
         [SerializeField] float gravity = -20f;
         [SerializeField] float groundStick = -2f;
 
+        [SerializeField] private CinemachineCamera m_PlayerCamera;
         CharacterController controller;
         Vector3 horizontalVelocity;
         float verticalVelocity;
@@ -20,6 +22,11 @@ namespace Noir.Player
 
         void Awake()
         {
+            if (m_PlayerCamera == null)
+            {
+                var look = FindFirstObjectByType<PlayerLook>(FindObjectsInactive.Include);
+                if (look != null) m_PlayerCamera = look.GetComponent<CinemachineCamera>();
+            }
             controller = GetComponent<CharacterController>();
             bodyColliders = GetComponentsInChildren<CapsuleCollider>(true);
             if (view == null && Camera.main != null) view = Camera.main.transform;
@@ -75,6 +82,24 @@ namespace Noir.Player
             float z = (k.wKey.isPressed ? 1f : 0f) - (k.sKey.isPressed ? 1f : 0f);
 
             return Vector3.ClampMagnitude(transform.right * x + transform.forward * z, 1f);
+        }
+
+        public void Warp(Transform destination)
+        {
+            Vector3 offset = destination.position - transform.position;
+            Vector3 cameraPosition = m_PlayerCamera != null
+                ? m_PlayerCamera.transform.position + offset : destination.position;
+            Quaternion rotation = destination.rotation;
+            Warp(destination.position);
+            transform.rotation = Quaternion.Euler(0f, rotation.eulerAngles.y, 0f);
+            if (m_PlayerCamera == null)
+            {
+                Debug.LogWarning("Назначь Player Camera в PlayerMovement для поворота при телепортации.", this);
+                return;
+            }
+            if (m_PlayerCamera.Follow != null)
+                cameraPosition = m_PlayerCamera.Follow.position;
+            m_PlayerCamera.ForceCameraPosition(cameraPosition, rotation);
         }
 
         public void Warp(Vector3 pos)

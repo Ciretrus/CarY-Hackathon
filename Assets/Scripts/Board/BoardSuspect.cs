@@ -18,6 +18,7 @@ namespace Noir.Interaction
         [SerializeField] private float _duration = 0.15f;
         [SerializeField] private Ease _ease = Ease.OutQuad;
 
+        private BoardHighlight _highlight;
         private Tween _tween;
         private bool _isHovered, _isSelected;
 
@@ -25,8 +26,20 @@ namespace Noir.Interaction
         public string SuspectName => _suspectName;
         public string[] RequiredIds => _requiredIds;
 
+        void Awake() => _highlight = GetComponent<BoardHighlight>();
+
         void OnEnable() { _isHovered = false; _isSelected = false; SetAlpha(0f); }
-        void OnDisable() { _tween?.Kill(); _isHovered = false; _isSelected = false; SetAlpha(0f); }
+        void OnDisable()
+        {
+            _tween?.Kill();
+            _isHovered = _isSelected = false;
+            if (_highlight != null && _highlight.isActiveAndEnabled)
+            {
+                _highlight.SetHovered(false);
+                _highlight.SetSelected(false);
+            }
+            SetAlpha(0f);
+        }
 
         public override void HoverEnter() { base.HoverEnter(); _isHovered = true; Refresh(); }
         public override void HoverExit() { base.HoverExit(); _isHovered = false; Refresh(); }
@@ -47,6 +60,13 @@ namespace Noir.Interaction
         void Refresh()
         {
             _tween?.Kill();
+            if (_highlight != null)
+            {
+                _highlight.SetHovered(_isHovered);
+                _highlight.SetSelected(_isSelected);
+            }
+            if (_glow == null) return;
+
             float target = _isSelected ? _selectedAlpha : _isHovered ? _hoverAlpha : 0f;
             _tween = _glow.DOFade(target, _duration).SetEase(_ease).SetLink(gameObject);
         }

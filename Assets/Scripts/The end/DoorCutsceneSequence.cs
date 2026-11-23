@@ -8,49 +8,52 @@ using Noir.Player;
 
 public class DoorCutsceneSequence : MonoBehaviour
 {
-    [Header("1. Дверь и силуэт")]
+    [Header("1. Р”РІРµСЂСЊ Рё СЃРёР»СѓСЌС‚")]
     [SerializeField] private Transform doorPivot;
     [SerializeField] private Vector3 openDoorLocalEuler = new Vector3(0f, 95f, 0f);
     [SerializeField] private AudioClip doorOpenSound;
     [SerializeField] private GameObject silhouetteObject;
 
-    [Header("2. Камера и управление")]
-    [Tooltip("Перетащи сюда объект с PlayerLook (виртуальная камера игрока).")]
+    [Header("2. РљР°РјРµСЂР° Рё СѓРїСЂР°РІР»РµРЅРёРµ")]
+    [Tooltip("РџРµСЂРµС‚Р°С‰Рё СЃСЋРґР° РѕР±СЉРµРєС‚ СЃ PlayerLook (РѕР±С‹С‡РЅРѕ РІРёСЂС‚СѓР°Р»СЊРЅР°СЏ РєР°РјРµСЂР° РёРіСЂРѕРєР°).")]
     [SerializeField] private PlayerLook playerLook;
-    [Tooltip("Перетащи сюда объект игрока с PlayerMovement.")]
+    [Tooltip("РџРµСЂРµС‚Р°С‰Рё СЃСЋРґР° РѕР±СЉРµРєС‚ РёРіСЂРѕРєР° СЃ PlayerMovement.")]
     [SerializeField] private PlayerMovement playerMovement;
-    [SerializeField] private float turnDuration = 0.85f;
-    [SerializeField] private float turnYAngle = 180f;
+    [SerializeField] private Transform lookTarget;
+    [Tooltip("РЎСЂРµРґРЅСЏСЏ СЃРєРѕСЂРѕСЃС‚СЊ РїРѕРІРѕСЂРѕС‚Р° РІ РіСЂР°РґСѓСЃР°С… РІ СЃРµРєСѓРЅРґСѓ.")]
+    [SerializeField, Min(1f)] private float turnSpeed = 180f;
+    [SerializeField] private Ease turnEase = Ease.InOutQuad;
 
-    [Header("3. Фраза")]
+    [Header("3. Р¤СЂР°Р·Р°")]
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip voicePhraseClip;
-    [SerializeField] private float delayBeforePhrase = 0.1f;
+    [SerializeField] private float delayBeforePhrase = 0.15f;
     [SerializeField] private float delayAfterPhrase = 0.2f;
 
-    [Header("4. Вспышка молнии (свет в комнате + 2 окна)")]
+    [Header("4. Р’СЃРїС‹С€РєР° РјРѕР»РЅРёРё (СЃРІРµС‚ РІ РєРѕРјРЅР°С‚Рµ + 2 РѕРєРЅР°)")]
     [SerializeField] private List<Light> lightningLights = new List<Light>();
     [SerializeField] private AudioClip lightningSound;
     [SerializeField] private float lightningPeakIntensity = 12f;
     [SerializeField] private float lightningDuration = 0.35f;
-    [Tooltip("Пауза после световой вспышки перед появлением чёрного экрана (не ждёт конца длинного звука грома).")]
-    [SerializeField] private float delayAfterLightning = 0.4f;
 
-    [Header("5. Тёмный экран")]
+    [Header("5. РўС‘РјРЅС‹Р№ СЌРєСЂР°РЅ")]
     [SerializeField] private CanvasGroup blackScreenCanvasGroup;
+    [SerializeField] private GameObject thankYouPanel;
     [SerializeField] private AudioClip blackScreenSound;
     [SerializeField] private float fadeToBlackDuration = 0.15f;
 
-    [Header("События")]
+    [Header("РЎРѕР±С‹С‚РёСЏ")]
     public UnityEvent onCutsceneFinished;
     public event Action OnCutsceneFinishedAction;
 
-    public bool IsPlaying { get; private set; }
-
     private Sequence _cutsceneSequence;
+    public bool IsPlaying => _cutsceneSequence.IsActive();
 
     private void Awake()
     {
+        if (thankYouPanel != null)
+            thankYouPanel.SetActive(false);
+
         if (silhouetteObject != null)
             silhouetteObject.SetActive(false);
 
@@ -63,73 +66,38 @@ public class DoorCutsceneSequence : MonoBehaviour
 
     public void PlayCutscene()
     {
-        _cutsceneSequence?.Kill();
-        IsPlaying = true;
+        if (IsPlaying) return;
 
+        // Р’С‹РєР»СЋС‡Р°РµРј РґРІРёР¶РµРЅРёРµ Рё РІРІРѕРґ РјС‹С€Рё
         if (playerMovement != null)
             playerMovement.enabled = false;
 
         if (playerLook != null)
         {
             playerLook.enabled = false;
+            // PlayerLook.OnDisable РїРѕРєР°Р·С‹РІР°РµС‚ РєСѓСЂСЃРѕСЂ вЂ” СЃРєСЂС‹РІР°РµРј РѕР±СЂР°С‚РЅРѕ
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
 
-        // 1. Открываем дверь, включаем силуэт и запускаем звук двери
+        // 1. РњРіРЅРѕРІРµРЅРЅРѕ РѕС‚РєСЂС‹РІР°РµРј РґРІРµСЂСЊ, РІРєР»СЋС‡Р°РµРј СЃРёР»СѓСЌС‚ Рё Р·РІСѓРє РґРІРµСЂРё
         if (doorPivot != null)
             doorPivot.localEulerAngles = openDoorLocalEuler;
 
         if (silhouetteObject != null)
             silhouetteObject.SetActive(true);
 
-        float doorSoundDuration = 0f;
         if (audioSource != null && doorOpenSound != null)
-        {
-            audioSource.clip = doorOpenSound;
-            audioSource.Play();
-            doorSoundDuration = doorOpenSound.length;
-        }
+            audioSource.PlayOneShot(doorOpenSound);
 
         _cutsceneSequence = DOTween.Sequence();
 
-        // Ждём, пока звук открывания двери не закончится полностью
-        if (doorSoundDuration > 0f)
-        {
-            _cutsceneSequence.AppendInterval(doorSoundDuration);
-        }
-
-        // 2. Только после звука двери — плавный разворот головы (камеры) на 180°
-        if (playerLook != null)
-        {
-            if (playerLook.TryGetComponent<CinemachinePanTilt>(out var panTilt))
-            {
-                float targetPan = panTilt.PanAxis.Value + turnYAngle;
-                _cutsceneSequence.Append(
-                    DOTween.To(
-                        () => panTilt.PanAxis.Value,
-                        x => panTilt.PanAxis.Value = x,
-                        targetPan,
-                        turnDuration
-                    ).SetEase(Ease.InOutQuad)
-                );
-            }
-            else
-            {
-                Vector3 targetRot = playerLook.transform.eulerAngles + new Vector3(0f, turnYAngle, 0f);
-                _cutsceneSequence.Append(
-                    playerLook.transform.DORotate(targetRot, turnDuration)
-                        .SetEase(Ease.InOutQuad)
-                );
-            }
-        }
+        AppendCameraTurn(_cutsceneSequence);
 
         if (delayBeforePhrase > 0f)
-        {
             _cutsceneSequence.AppendInterval(delayBeforePhrase);
-        }
 
-        // 3. После полного поворота головы — запускаем фразу и ждём её окончания
+        // 3. Р—Р°РїСѓСЃРє С„СЂР°Р·С‹ Рё РѕР¶РёРґР°РЅРёРµ РµС‘ РѕРєРѕРЅС‡Р°РЅРёСЏ
         float phraseDuration = voicePhraseClip != null ? voicePhraseClip.length : 0f;
         _cutsceneSequence.AppendCallback(() =>
         {
@@ -141,16 +109,12 @@ public class DoorCutsceneSequence : MonoBehaviour
         });
 
         if (phraseDuration > 0f)
-        {
             _cutsceneSequence.AppendInterval(phraseDuration);
-        }
 
         if (delayAfterPhrase > 0f)
-        {
             _cutsceneSequence.AppendInterval(delayAfterPhrase);
-        }
 
-        // 4. Звук молнии (идёт фоном через PlayOneShot) и вспышка всех источников света
+        // 4. Р—РІСѓРє РјРѕР»РЅРёРё Рё РІСЃРїС‹С€РєР° РІСЃРµС… РёСЃС‚РѕС‡РЅРёРєРѕРІ СЃРІРµС‚Р°
         _cutsceneSequence.AppendCallback(() =>
         {
             if (audioSource != null && lightningSound != null)
@@ -179,39 +143,78 @@ public class DoorCutsceneSequence : MonoBehaviour
             _cutsceneSequence.Append(flashSequence);
         }
 
-        // Настраиваемая пауза после окончания световой вспышки (не ждёт хвост звука молнии)
-        if (delayAfterLightning > 0f)
-        {
-            _cutsceneSequence.AppendInterval(delayAfterLightning);
-        }
-
-        // 5. Уход в тёмный экран и звук при его появлении (строго после вспышки и паузы)
-        _cutsceneSequence.AppendCallback(() =>
-        {
-            if (audioSource != null && blackScreenSound != null)
-                audioSource.PlayOneShot(blackScreenSound);
-        });
-
+        // 5. РЈС…РѕРґ РІ С‚С‘РјРЅС‹Р№ СЌРєСЂР°РЅ Рё Р·РІСѓРє РїСЂРё РµРіРѕ РїРѕСЏРІР»РµРЅРёРё
         if (blackScreenCanvasGroup != null)
         {
-            _cutsceneSequence.Append(
+            _cutsceneSequence.Join(
                 blackScreenCanvasGroup.DOFade(1f, fadeToBlackDuration)
                     .SetEase(Ease.InQuad)
-                    .OnStart(() => blackScreenCanvasGroup.gameObject.SetActive(true))
+                    .OnStart(() =>
+                    {
+                        blackScreenCanvasGroup.gameObject.SetActive(true);
+                        if (audioSource != null && blackScreenSound != null)
+                            audioSource.PlayOneShot(blackScreenSound);
+                    })
             );
         }
+        else
+        {
+            _cutsceneSequence.AppendCallback(() =>
+            {
+                if (audioSource != null && blackScreenSound != null)
+                    audioSource.PlayOneShot(blackScreenSound);
+            });
+        }
 
+        _cutsceneSequence.AppendCallback(ShowThankYou);
+        _cutsceneSequence.AppendInterval(5f);
         _cutsceneSequence.OnComplete(() =>
         {
-            IsPlaying = false;
             onCutsceneFinished?.Invoke();
             OnCutsceneFinishedAction?.Invoke();
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            IntroSceneTransition.Instance.Go("Main Menu", 0.35f, false);
         });
+    }
+
+    private void ShowThankYou()
+    {
+        if (thankYouPanel != null)
+            thankYouPanel.SetActive(true);
+        else
+            Debug.LogWarning("РќР°Р·РЅР°С‡СЊ Thank You Panel РґР»СЏ С„РёРЅР°Р»СЊРЅРѕРіРѕ СЌРєСЂР°РЅР°.", this);
+    }
+
+    private void AppendCameraTurn(Sequence sequence)
+    {
+        if (lookTarget == null || playerLook == null)
+        {
+            Debug.LogWarning("DoorCutsceneSequence: РЅР°Р·РЅР°С‡СЊ Look Target Рё Player Look РґР»СЏ РїРѕРІРѕСЂРѕС‚Р° РєР°РјРµСЂС‹.", this);
+            return;
+        }
+
+        Transform cameraRig = playerLook.transform;
+        Vector3 direction = lookTarget.position - cameraRig.position;
+        if (direction.sqrMagnitude < 0.000001f) return;
+
+        // Р¤РёРЅР°Р»СЊРЅР°СЏ РєР°С‚СЃС†РµРЅР° СѓРїСЂР°РІР»СЏРµС‚ РѕСЂРёРµРЅС‚Р°С†РёРµР№ РІРёСЂС‚СѓР°Р»СЊРЅРѕР№ РєР°РјРµСЂС‹ РґРѕ Р·Р°С‚РµРјРЅРµРЅРёСЏ.
+        if (playerLook.TryGetComponent<CinemachinePanTilt>(out var panTilt))
+            panTilt.enabled = false;
+
+        Vector3 flat = Vector3.ProjectOnPlane(direction, Vector3.up);
+        float yaw = flat.sqrMagnitude > 0.000001f
+            ? Mathf.Atan2(flat.x, flat.z) * Mathf.Rad2Deg
+            : cameraRig.eulerAngles.y;
+        float pitch = -Mathf.Atan2(direction.y, flat.magnitude) * Mathf.Rad2Deg;
+        Quaternion targetRotation = Quaternion.Euler(pitch, yaw, 0f);
+        float duration = Quaternion.Angle(cameraRig.rotation, targetRotation) / Mathf.Max(1f, turnSpeed);
+        if (duration > 0f)
+            sequence.Append(cameraRig.DORotateQuaternion(targetRotation, duration).SetEase(turnEase));
     }
 
     private void OnDestroy()
     {
-        IsPlaying = false;
         _cutsceneSequence?.Kill();
     }
 }
