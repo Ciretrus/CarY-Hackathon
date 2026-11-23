@@ -22,6 +22,7 @@ public sealed class GameplayPauseMenu : MonoBehaviour
     private bool m_ReturningToMenu;
     private float m_TimeScale;
 
+
     private void Start()
     {
         m_Modes = GetComponent<PlayerModes>();
