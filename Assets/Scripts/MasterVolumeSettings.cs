@@ -80,12 +80,12 @@ public sealed class MasterVolumeSettings : MonoBehaviour
             m_MenuAlphas.Add(group, group.alpha);
         }
         else foreach (Transform child in canvas.transform)
-        {
-            if (child.gameObject == m_Panel || !child.gameObject.activeSelf) continue;
-            var group = child.GetComponent<CanvasGroup>();
-            if (group == null) group = child.gameObject.AddComponent<CanvasGroup>();
-            m_MenuAlphas.Add(group, group.alpha);
-        }
+            {
+                if (child.gameObject == m_Panel || !child.gameObject.activeSelf) continue;
+                var group = child.GetComponent<CanvasGroup>();
+                if (group == null) group = child.gameObject.AddComponent<CanvasGroup>();
+                m_MenuAlphas.Add(group, group.alpha);
+            }
         m_HasCameraPose = m_PausePanel == null && m_MenuCamera != null && m_SettingsTarget != null;
         if (m_HasCameraPose)
             m_Home = new Pose(m_MenuCamera.transform.position, m_MenuCamera.transform.rotation);
@@ -201,7 +201,7 @@ public sealed class MasterVolumeSettings : MonoBehaviour
     private void RefreshLabel()
     {
         if (m_Label != null)
-            m_Label.text = m_Ready ? $"Master volume   {m_Percent}%" : "Master volume unavailable";
+            m_Label.text = m_Ready ? $"Громкость   {m_Percent}%" : "Master volume unavailable";
     }
 
     private void BuildPanel(Transform parent)
@@ -210,7 +210,7 @@ public sealed class MasterVolumeSettings : MonoBehaviour
         m_Panel = root.gameObject;
         m_PanelGroup = root.gameObject.AddComponent<CanvasGroup>();
         root.gameObject.AddComponent<Image>().color = new Color(0.04f, 0.04f, 0.05f, 0.52f);
-        Label(root, "Settings", 0.77f, 0.90f, 46);
+        Label(root, "Настройки", 0.77f, 0.90f, 46);
         m_Label = Label(root, "", 0.64f, 0.73f, 32);
 
         m_Slider = CreateSlider(root, "Master volume", 0.59f);
@@ -228,7 +228,7 @@ public sealed class MasterVolumeSettings : MonoBehaviour
         var button = back.gameObject.AddComponent<Button>();
         button.targetGraphic = background;
         button.onClick.AddListener(Close);
-        Label(back, "Back", 0f, 1f, 28);
+        Label(back, "Назад", 0f, 1f, 28);
         m_Panel.SetActive(false);
     }
 
@@ -243,7 +243,7 @@ public sealed class MasterVolumeSettings : MonoBehaviour
 
     private void ShowSensitivity(float sensitivity)
     {
-        m_SensitivityLabel.text = $"Mouse sensitivity   {sensitivity:0.00}";
+        m_SensitivityLabel.text = $"Чувствительность мыши   {sensitivity:0.00}";
     }
 
     private static Slider CreateSlider(Transform root, string name, float height)
