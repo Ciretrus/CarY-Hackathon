@@ -38,7 +38,8 @@ public class DoorCutsceneSequence : MonoBehaviour
 
     [Header("5. Тёмный экран")]
     [SerializeField] private CanvasGroup blackScreenCanvasGroup;
-    [SerializeField] private GameObject thankYouPanel;
+    [SerializeField] private CanvasGroup thankYouPanel;
+    [SerializeField] private float thankYouFadeDuration = 1f;
     [SerializeField] private AudioClip blackScreenSound;
     [SerializeField] private float fadeToBlackDuration = 0.15f;
 
@@ -52,7 +53,10 @@ public class DoorCutsceneSequence : MonoBehaviour
     private void Awake()
     {
         if (thankYouPanel != null)
-            thankYouPanel.SetActive(false);
+        {
+            thankYouPanel.alpha = 0f;
+            thankYouPanel.gameObject.SetActive(false);
+        }
 
         if (silhouetteObject != null)
             silhouetteObject.SetActive(false);
@@ -166,7 +170,18 @@ public class DoorCutsceneSequence : MonoBehaviour
             });
         }
 
-        _cutsceneSequence.AppendCallback(ShowThankYou);
+        if (thankYouPanel != null)
+        {
+            _cutsceneSequence.Append(
+                thankYouPanel.DOFade(1f, thankYouFadeDuration)
+                    .SetEase(Ease.InOutQuad)
+                    .OnStart(() =>
+                    {
+                        thankYouPanel.alpha = 0f;
+                        thankYouPanel.gameObject.SetActive(true);
+                    })
+            );
+        }
         _cutsceneSequence.AppendInterval(5f);
         _cutsceneSequence.OnComplete(() =>
         {
@@ -181,7 +196,7 @@ public class DoorCutsceneSequence : MonoBehaviour
     private void ShowThankYou()
     {
         if (thankYouPanel != null)
-            thankYouPanel.SetActive(true);
+            thankYouPanel.gameObject.SetActive(true);
         else
             Debug.LogWarning("Назначь Thank You Panel для финального экрана.", this);
     }
