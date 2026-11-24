@@ -4113,7 +4113,7 @@ PrefabInstance:
     - target: {fileID: 3003495658537686507, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
       propertyPath: _shutterSound
       value: 
-      objectReference: {fileID: 8300000, guid: 7d5292d944943d440bdf886965e4a71d, type: 3}
+      objectReference: {fileID: 8300000, guid: 13015c2e4af889c4bb40ea1bfecbc7e8, type: 3}
     - target: {fileID: 3003495658537686507, guid: 93747f145dba2ed4880731110f6b1cbb, type: 3}
       propertyPath: _noEvidenceSounds.Array.size
       value: 8
