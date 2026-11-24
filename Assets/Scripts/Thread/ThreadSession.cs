@@ -28,6 +28,7 @@ namespace Noir.Interaction
 
         [SerializeField] private DoorCutsceneSequence _ending;
         private bool _endingStarted;
+        public bool EndingStarted => _endingStarted;
 
         [Header("Feedback")]
         [SerializeField] private AudioSource _audio;

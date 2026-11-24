@@ -9,6 +9,7 @@ namespace Noir.Interaction
     public sealed class InspectLetterbox : MonoBehaviour
     {
         [SerializeField] private InspectMode inspectMode;
+        [SerializeField] private ThreadSession threadSession;
         [SerializeField, Range(0.01f, 0.25f)] private float barHeight = 0.08f;
         [SerializeField, Min(0f)] private float duration = 0.32f;
 
@@ -20,12 +21,8 @@ namespace Noir.Interaction
 
         private void Awake()
         {
-            if (inspectMode == null)
-            {
-                Debug.LogWarning("InspectLetterbox: назначьте Inspect Mode в Inspector.", this);
-                enabled = false;
-                return;
-            }
+            if (threadSession == null)
+                threadSession = FindFirstObjectByType<ThreadSession>(FindObjectsInactive.Include);
 
             top = CreateBar("Inspect Bar - Top");
             bottom = CreateBar("Inspect Bar - Bottom");
@@ -49,9 +46,10 @@ namespace Noir.Interaction
         private void LateUpdate()
         {
             bool inspecting = inspectMode != null && inspectMode.isActiveAndEnabled;
-            if (showing == inspecting) return;
+            bool shouldShow = inspecting || (threadSession != null && threadSession.EndingStarted);
+            if (showing == shouldShow) return;
 
-            showing = inspecting;
+            showing = shouldShow;
             motion?.Kill();
             float target = showing ? 1f : 0f;
             float travelTime = duration * Mathf.Abs(target - progress);
